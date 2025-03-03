@@ -26,13 +26,28 @@ class RouteGenerator {
         val remaining = attractions.toMutableList()
         val route = mutableListOf<Attraction>()
         val startingPoint = (0 until remaining.size).random()
-        var current = remaining.removeAt(startingPoint)
+        val current = remaining.removeAt(startingPoint)
         route.add(current)
-        while (route.size < 5) {
+        while (remaining.size > 0) {
             val next = remaining.minByOrNull { distance(current, it) } ?: break
             route.add(next)
             remaining.remove(next)
-            current = next
+        }
+        return route
+    }
+
+    fun generateRandomRoute(attractions: List<Attraction>): List<Attraction> {
+        if (attractions.isEmpty()) return emptyList()
+        val remaining = attractions.toMutableList()
+        val route = mutableListOf<Attraction>()
+        val startingPoint = (0 until remaining.size).random()
+        val current = remaining.removeAt(startingPoint)
+        route.add(current)
+        while (route.size < 5) {
+            val nextPoint = (0 until remaining.size).random()
+            val next = remaining.removeAt(nextPoint)
+            route.add(next)
+            remaining.remove(next)
         }
         return route
     }

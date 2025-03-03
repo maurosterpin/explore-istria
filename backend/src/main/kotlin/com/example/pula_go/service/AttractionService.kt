@@ -2,6 +2,7 @@ package com.example.pula_go.service
 
 import com.example.pula_go.model.Attraction
 import com.example.pula_go.repository.AttractionRepository
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 
 @Service
@@ -9,11 +10,27 @@ class AttractionService(
     private val attractionRepository: AttractionRepository,
     private val googlePlacesService: GooglePlacesService
 ) {
+
     fun fetchAndSaveAttractions(): List<Attraction> {
         attractionRepository.truncateTable()
         val attractions = googlePlacesService.fetchAllAttractions()
         return attractionRepository.saveAll(attractions)
     }
 
-    fun getAllAttractions(): List<Attraction> = attractionRepository.findAll()
+    fun updateExistingAttractions(newAttractions: List<Attraction>): List<Attraction> {
+        val updatedAttractions = mutableListOf<Attraction>()
+        newAttractions.forEach { attraction ->
+            if (attractionRepository.existsById(attraction.id)) {
+                val updated = attractionRepository.save(attraction)
+                updatedAttractions.add(updated)
+            }
+        }
+        return updatedAttractions
+    }
+
+    fun getAllAttractions(): List<Attraction> = attractionRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))
+
+    fun deleteAttraction(id: Long) {
+        attractionRepository.deleteById(id)
+    }
 }

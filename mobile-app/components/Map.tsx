@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import polyline from "@mapbox/polyline";
+import * as Location from "expo-location";
+import { useStore } from "@/app/store/AttractionStore";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -21,26 +23,34 @@ const Map = () => {
   const [initialRegion, setInitialRegion] = useState<InitialRegion | null>(
     null
   );
-
+  const [useMyLocation, setUseMyLocation] = useState<any>(false);
+  const { selectedAttractions } = useStore();
   useEffect(() => {
-    const generateRoute = async () => {
-      try {
-        const data = await fetchRoute();
-        await fetchRoadRoute(data);
-      } catch (error) {
-        console.error("Error fetching route:", error);
-      }
-    };
-
     generateRoute();
-  }, []);
+  }, [selectedAttractions]);
+
+  const generateRoute = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === "granted") setUseMyLocation(true);
+      const data = await fetchRoute();
+      await fetchRoadRoute(data);
+    } catch (error) {
+      console.error("Error fetching route:", error);
+    }
+  };
 
   const fetchRoute = async () => {
     try {
-      const response = await fetch("http://10.0.2.2:8080/route");
+      const response = await fetch("http://10.0.2.2:8080/route", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(selectedAttractions),
+      });
       const data = await response.json();
       setRoute(data);
-
       if (data && data.length > 0) {
         setInitialRegion({
           latitude: data[0].lat,
@@ -51,7 +61,7 @@ const Map = () => {
       }
       return data;
     } catch (error) {
-      console.error("Error fetching route:", error);
+      console.error("Error fetching routeaa:", error);
     }
   };
 
@@ -74,7 +84,6 @@ const Map = () => {
       );
 
       const data = await response.json();
-      console.log("COORDINATES!!!", data.routes[0].geometry);
       if (data.routes && data.routes.length > 0) {
         const decodedCoords = polyline.decode(data.routes[0].geometry);
         const routeCoords = decodedCoords.map(([lat, lng]) => ({
@@ -91,7 +100,7 @@ const Map = () => {
   const [selectedAttraction, setSelectedAttraction] =
     useState<Attraction | null>(null);
 
-  const panelAnim = useRef(new Animated.Value(-SCREEN_WIDTH)).current;
+  const panelAnim = useRef(new Animated.Value(SCREEN_WIDTH * 0.7)).current;
 
   const openPanel = (attraction: any) => {
     setSelectedAttraction(attraction);
@@ -105,13 +114,21 @@ const Map = () => {
 
   const closePanel = () => {
     Animated.timing(panelAnim, {
-      toValue: -SCREEN_WIDTH,
+      toValue: SCREEN_WIDTH * 0.7,
       duration: 300,
       useNativeDriver: false,
     }).start(() => {
       setSelectedAttraction(null);
     });
   };
+
+  // if (selectedAttractions.length < 1) {
+  //   return (
+  //     <View style={styles.loadingContainer}>
+  //       <Text>No attractions selected</Text>
+  //     </View>
+  //   );
+  // }
 
   if (!initialRegion) {
     return (
@@ -126,6 +143,8 @@ const Map = () => {
       <MapView
         style={StyleSheet.absoluteFillObject}
         initialRegion={initialRegion}
+        showsUserLocation={useMyLocation}
+        showsMyLocationButton={useMyLocation}
       >
         {route.map((attraction) => (
           <Marker
