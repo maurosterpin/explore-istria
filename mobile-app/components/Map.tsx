@@ -7,11 +7,13 @@ import {
   Dimensions,
   Animated,
   Pressable,
+  Button,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import polyline from "@mapbox/polyline";
 import * as Location from "expo-location";
 import { useStore } from "@/app/store/AttractionStore";
+import Entypo from "@expo/vector-icons/Entypo";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -25,29 +27,92 @@ const Map = () => {
   );
   const [useMyLocation, setUseMyLocation] = useState<any>(false);
   const { selectedAttractions } = useStore();
-  useEffect(() => {
-    generateRoute();
-  }, [selectedAttractions]);
+  const [userLocation, setUserLocation] =
+    useState<Location.LocationObjectCoords | null>(null);
+  const [heading, setHeading] = useState<number>(0);
+  const [isNavigating, setIsNavigating] = useState(false);
 
-  const generateRoute = async () => {
+  const watchLocSub = useRef<any>(null);
+  const watchHeadSub = useRef<any>(null);
+
+  async function startNavigation() {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") return;
+
+    watchLocSub.current = await Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.High,
+        distanceInterval: 1,
+      },
+      (loc) => {
+        setUserLocation(loc.coords);
+      }
+    );
+
+    watchHeadSub.current = await Location.watchHeadingAsync((data) => {
+      if (data.trueHeading >= 0) {
+        setHeading(data.trueHeading);
+      } else {
+        setHeading(data.magHeading);
+      }
+    });
+  }
+
+  function stopNavigation() {
+    if (watchLocSub.current) {
+      watchLocSub.current.remove();
+      watchLocSub.current = null;
+    }
+    if (watchHeadSub.current) {
+      watchHeadSub.current.remove();
+      watchHeadSub.current = null;
+    }
+    setUserLocation(null);
+  }
+
+  useEffect(() => {
+    if (isNavigating) {
+      startNavigation();
+    } else {
+      stopNavigation();
+    }
+  }, [isNavigating]);
+
+  useEffect(() => {
+    let locations = null;
+    if (userLocation?.latitude && userLocation?.longitude) {
+      const user: Attraction = {
+        id: 0,
+        name: "userLocation",
+        lat: userLocation?.latitude,
+        lng: userLocation?.longitude,
+        description: "",
+        imageUrl: "",
+      };
+      locations = [...selectedAttractions, user];
+    }
+    generateRoute(locations);
+  }, [userLocation, selectedAttractions]);
+
+  const generateRoute = async (userLoc?: any) => {
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status === "granted") setUseMyLocation(true);
-      const data = await fetchRoute();
+      const data = await fetchRoute(userLoc);
       await fetchRoadRoute(data);
     } catch (error) {
       console.error("Error fetching route:", error);
     }
   };
 
-  const fetchRoute = async () => {
+  const fetchRoute = async (locations?: any) => {
     try {
       const response = await fetch("http://10.0.2.2:8080/route", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(selectedAttractions),
+        body: JSON.stringify(locations || selectedAttractions),
       });
       const data = await response.json();
       setRoute(data);
@@ -130,6 +195,14 @@ const Map = () => {
   //   );
   // }
 
+  if (selectedAttractions.length < 1) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>No attractions added to route</Text>
+      </View>
+    );
+  }
+
   if (!initialRegion) {
     return (
       <View style={styles.loadingContainer}>
@@ -143,28 +216,53 @@ const Map = () => {
       <MapView
         style={StyleSheet.absoluteFillObject}
         initialRegion={initialRegion}
-        showsUserLocation={useMyLocation}
-        showsMyLocationButton={useMyLocation}
+        showsUserLocation={false}
+        showsMyLocationButton={false}
       >
-        {route.map((attraction) => (
-          <Marker
-            key={attraction.id}
-            coordinate={{
-              latitude: attraction.lat,
-              longitude: attraction.lng,
-            }}
-            onPress={() => openPanel(attraction)}
-          />
-        ))}
+        {route.map((attraction) => {
+          if (attraction.name === "userLocation") return null;
+          return (
+            <Marker
+              key={attraction.id}
+              coordinate={{
+                latitude: attraction.lat,
+                longitude: attraction.lng,
+              }}
+              onPress={() => openPanel(attraction)}
+            />
+          );
+        })}
 
         {roadRoute.length > 1 && (
           <Polyline
             coordinates={roadRoute}
-            strokeColor="#0000FF"
+            strokeColor="#0084ff"
             strokeWidth={4}
           />
         )}
+
+        {userLocation && (
+          <Marker
+            coordinate={{
+              latitude: userLocation.latitude,
+              longitude: userLocation.longitude,
+            }}
+            anchor={{ x: 0.5, y: 0.5 }}
+            style={{ transform: [{ rotate: `${heading}deg` }] }}
+          >
+            <Entypo name="direction" size={40} color={"blue"} />
+          </Marker>
+        )}
       </MapView>
+
+      {useMyLocation && (
+        <View style={styles.buttonContainer}>
+          <Button
+            title={isNavigating ? "Stop Navigation" : "Start Navigation"}
+            onPress={() => setIsNavigating(!isNavigating)}
+          />
+        </View>
+      )}
 
       <Animated.View
         style={[styles.sidePanel, { transform: [{ translateX: panelAnim }] }]}
@@ -192,7 +290,13 @@ const Map = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-
+  buttonContainer: {
+    position: "absolute",
+    bottom: 40,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
   sidePanel: {
     position: "absolute",
     top: 0,

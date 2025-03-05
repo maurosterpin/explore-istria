@@ -14,7 +14,6 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      initialRouteName="explore"
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         headerShown: false,
@@ -29,7 +28,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="explore"
         options={{
           title: "Route",
           tabBarIcon: ({ color }) => (
@@ -38,7 +37,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="index"
         options={{
           title: "Attractions",
           tabBarIcon: ({ color }) => (
