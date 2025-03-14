@@ -1,6 +1,7 @@
 package com.example.pula_go.model
 
 import jakarta.persistence.*
+import java.math.BigDecimal
 
 @Entity
 @Table(name = "attractions")
@@ -21,5 +22,12 @@ data class Attraction(
 
     @Lob
     @Column(columnDefinition = "TEXT")
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+
+    val rating: Double? = null,
+
+    @Enumerated(EnumType.STRING)
+    val category: Category? = null,
+
+    val price: BigDecimal? = null
 )

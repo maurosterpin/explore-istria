@@ -17,8 +17,6 @@ import Entypo from "@expo/vector-icons/Entypo";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
-const ORS_API_KEY = "HIDDEN";
-
 const Map = () => {
   const [route, setRoute] = useState<Attraction[]>([]);
   const [roadRoute, setRoadRoute] = useState<any>([]);
@@ -31,6 +29,7 @@ const Map = () => {
     useState<Location.LocationObjectCoords | null>(null);
   const [heading, setHeading] = useState<number>(0);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const watchLocSub = useRef<any>(null);
   const watchHeadSub = useRef<any>(null);
@@ -96,6 +95,7 @@ const Map = () => {
 
   const generateRoute = async (userLoc?: any) => {
     try {
+      setIsLoading(true);
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status === "granted") setUseMyLocation(true);
       const data = await fetchRoute(userLoc);
@@ -132,6 +132,7 @@ const Map = () => {
 
   const fetchRoadRoute = async (nodes: any) => {
     const coordinates = nodes.map((node: any) => [node.lng, node.lat]);
+    const apiKey = process.env.EXPO_PUBLIC_ORS_API_KEY;
 
     try {
       const response = await fetch(
@@ -140,7 +141,7 @@ const Map = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: ORS_API_KEY,
+            Authorization: apiKey!!,
           },
           body: JSON.stringify({
             coordinates,
@@ -159,6 +160,8 @@ const Map = () => {
       }
     } catch (error) {
       console.error("Error fetching road route:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -258,7 +261,14 @@ const Map = () => {
       {useMyLocation && (
         <View style={styles.buttonContainer}>
           <Button
-            title={isNavigating ? "Stop Navigation" : "Start Navigation"}
+            disabled={isLoading}
+            title={
+              isLoading
+                ? "Loading..."
+                : isNavigating
+                ? "Stop Navigation"
+                : "Start Navigation"
+            }
             onPress={() => setIsNavigating(!isNavigating)}
           />
         </View>
