@@ -29,5 +29,7 @@ data class Attraction(
     @Enumerated(EnumType.STRING)
     val category: Category? = null,
 
-    val price: BigDecimal? = null
+    val price: BigDecimal? = null,
+
+    val city: String? = null,
 )

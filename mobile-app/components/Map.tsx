@@ -95,7 +95,6 @@ const Map = () => {
 
   const generateRoute = async (userLoc?: any) => {
     try {
-      setIsLoading(true);
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status === "granted") setUseMyLocation(true);
       const data = await fetchRoute(userLoc);
@@ -269,7 +268,10 @@ const Map = () => {
                 ? "Stop Navigation"
                 : "Start Navigation"
             }
-            onPress={() => setIsNavigating(!isNavigating)}
+            onPress={() => {
+              setIsLoading(true);
+              setIsNavigating(!isNavigating);
+            }}
           />
         </View>
       )}

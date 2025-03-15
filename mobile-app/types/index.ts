@@ -5,6 +5,10 @@ type Attraction = {
   lng: number;
   description: string;
   imageUrl: string;
+  rating?: number;
+  category?: string;
+  price?: number;
+  city?: string;
 };
 
 type InitialRegion = {
