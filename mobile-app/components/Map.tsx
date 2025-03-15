@@ -14,6 +14,7 @@ import polyline from "@mapbox/polyline";
 import * as Location from "expo-location";
 import { useStore } from "@/app/store/AttractionStore";
 import Entypo from "@expo/vector-icons/Entypo";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -216,6 +217,7 @@ const Map = () => {
   return (
     <View style={styles.container}>
       <MapView
+        onPress={closePanel}
         style={StyleSheet.absoluteFillObject}
         initialRegion={initialRegion}
         showsUserLocation={false}
@@ -279,12 +281,12 @@ const Map = () => {
       <Animated.View
         style={[styles.sidePanel, { transform: [{ translateX: panelAnim }] }]}
       >
-        <Pressable onPress={closePanel} style={styles.closeButton}>
+        {/* <Pressable onPress={closePanel} style={styles.closeButton}>
           <Text style={styles.closeButtonText}>Close</Text>
-        </Pressable>
+        </Pressable> */}
 
         {selectedAttraction && (
-          <View style={styles.infoContainer}>
+          <SafeAreaView onTouchEnd={closePanel} style={styles.infoContainer}>
             <Text style={styles.title}>{selectedAttraction.name}</Text>
             <Image
               source={{ uri: selectedAttraction.imageUrl }}
@@ -293,7 +295,7 @@ const Map = () => {
             <Text style={styles.description}>
               {selectedAttraction.description}
             </Text>
-          </View>
+          </SafeAreaView>
         )}
       </Animated.View>
     </View>
