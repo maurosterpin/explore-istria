@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
-  Pressable,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import polyline from "@mapbox/polyline";
@@ -15,7 +14,7 @@ import { useStore } from "@/app/store/AttractionStore";
 import Entypo from "@expo/vector-icons/Entypo";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { baseApiUrl } from "@/constants/Api";
-import { Button, FAB } from "react-native-paper";
+import { FAB } from "react-native-paper";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -285,7 +284,7 @@ const Map = () => {
                 : "Start Navigation"
             }
             icon="map"
-            disabled={selectedAttractions.length < 1}
+            disabled={isLoading}
             onPress={() => {
               setIsLoading(true);
               setIsNavigating(!isNavigating);

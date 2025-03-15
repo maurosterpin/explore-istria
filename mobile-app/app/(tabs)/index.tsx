@@ -1,4 +1,3 @@
-import { useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -15,20 +14,27 @@ import { Picker } from "@react-native-picker/picker";
 
 const AttractionsPage = () => {
   const [attractions, setAttractions] = useState<Attraction[]>([]);
-  const { selectedAttractions, setSelectedAttractions } = useStore();
-  const router = useRouter();
+  const {
+    selectedAttractions,
+    setSelectedAttractions,
+    selectedCategory,
+    setSelectedCategory,
+    selectedCity,
+    setSelectedCity,
+  } = useStore();
   const [showOnlySelected, setShowOnlySelected] = useState(false);
 
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-
   useEffect(() => {
-    fetchRoute();
-  }, []);
+    fetchAttractions();
+  }, [selectedCategory, selectedCity]);
 
-  const fetchRoute = async () => {
+  const fetchAttractions = async () => {
     try {
-      const response = await fetch(`${baseApiUrl}/get`);
+      const response = await fetch(
+        `${baseApiUrl}/get?${
+          selectedCategory ? `category=${selectedCategory}` : ""
+        }${selectedCity ? `&city=${selectedCity}` : ""}`
+      );
       const data = await response.json();
       setAttractions(data);
       return data;
@@ -80,9 +86,11 @@ const AttractionsPage = () => {
         onValueChange={(val) => setSelectedCategory(val)}
       >
         <Picker.Item label="All Categories" value={null} />
-        <Picker.Item label="Museums" value="museum" />
-        <Picker.Item label="Parks" value="park" />
-        <Picker.Item label="Food" value="food" />
+        <Picker.Item label="Historical" value={"HISTORICAL"} />
+        <Picker.Item label="Cultural" value={"CULTURAL"} />
+        <Picker.Item label="Natural" value={"NATURAL"} />
+        <Picker.Item label="Recreational" value={"RECREATIONAL"} />
+        <Picker.Item label="Culinary" value={"CULINARY"} />
       </Picker>
 
       <Picker
@@ -91,9 +99,9 @@ const AttractionsPage = () => {
         onValueChange={(val) => setSelectedCity(val)}
       >
         <Picker.Item label="All Cities" value={null} />
-        <Picker.Item label="New York" value="New York" />
-        <Picker.Item label="Paris" value="Paris" />
-        <Picker.Item label="Tokyo" value="Tokyo" />
+        <Picker.Item label="Pula" value="Pula" />
+        <Picker.Item label="Porec" value="Porec" />
+        <Picker.Item label="Rovinj" value="Rovinj" />
       </Picker>
     </View>
   );

@@ -1,6 +1,7 @@
 package com.example.pula_go.controller
 
 import com.example.pula_go.model.Attraction
+import com.example.pula_go.model.Category
 import com.example.pula_go.service.AttractionService
 import com.example.pula_go.service.RouteGenerator
 import org.springframework.web.bind.annotation.*
@@ -18,8 +19,11 @@ class AttractionController(
 //    }
 
     @GetMapping("/get")
-    fun getAttractions(): List<Attraction> {
-        return attractionService.getAllAttractions()
+    fun getAttractions(
+        @RequestParam(required = false) category: Category?,
+        @RequestParam(required = false) city: String?,
+    ): List<Attraction?>? {
+        return attractionService.getAllAttractions(category, city)
     }
 
     @PostMapping("/route")

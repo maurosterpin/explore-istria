@@ -1,8 +1,8 @@
 package com.example.pula_go.service
 
 import com.example.pula_go.model.Attraction
+import com.example.pula_go.model.Category
 import com.example.pula_go.repository.AttractionRepository
-import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 
 @Service
@@ -28,7 +28,7 @@ class AttractionService(
         return updatedAttractions
     }
 
-    fun getAllAttractions(): List<Attraction> = attractionRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))
+    fun getAllAttractions(category: Category?, city: String?): List<Attraction?>? = attractionRepository.findAllByCustomParams(category, city)
 
     fun deleteAttraction(id: Long) {
         attractionRepository.deleteById(id)
