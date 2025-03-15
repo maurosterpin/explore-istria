@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -59,7 +59,7 @@ const Map = () => {
     });
   }
 
-  function stopNavigation() {
+  const stopNavigation = useCallback(() => {
     if (watchLocSub.current) {
       watchLocSub.current.remove();
       watchLocSub.current = null;
@@ -69,7 +69,7 @@ const Map = () => {
       watchHeadSub.current = null;
     }
     setUserLocation(null);
-  }
+  }, []);
 
   useEffect(() => {
     if (isNavigating) {
@@ -95,83 +95,92 @@ const Map = () => {
     generateRoute(locations);
   }, [userLocation, selectedAttractions]);
 
-  const generateRoute = async (userLoc?: any) => {
-    try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === "granted") setUseMyLocation(true);
-      const data = await fetchRoute(userLoc);
-      await fetchRoadRoute(data);
-    } catch (error) {
-      console.error("Error fetching route:", error);
-    }
-  };
-
-  const fetchRoute = async (locations?: any) => {
-    try {
-      const response = await fetch(`${baseApiUrl}/route`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(locations || selectedAttractions),
-      });
-      const data = await response.json();
-      setRoute(data);
-      if (data && data.length > 0) {
-        setInitialRegion({
-          latitude: data[0].lat,
-          longitude: data[0].lng,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        });
+  const generateRoute = useCallback(
+    async (userLoc?: any) => {
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === "granted") setUseMyLocation(true);
+        const data = await fetchRoute(userLoc);
+        await fetchRoadRoute(data);
+      } catch (error) {
+        console.error("Error fetching route:", error);
       }
-      return data;
-    } catch (error) {
-      console.error("Error fetching routeaa:", error);
-    }
-  };
+    },
+    [selectedAttractions]
+  );
 
-  const fetchRoadRoute = async (nodes: any) => {
-    const coordinates = nodes.map((node: any) => [node.lng, node.lat]);
-    const apiKey = process.env.EXPO_PUBLIC_ORS_API_KEY;
-
-    try {
-      const response = await fetch(
-        "https://api.openrouteservice.org/v2/directions/foot-walking",
-        {
+  const fetchRoute = useCallback(
+    async (locations?: any) => {
+      try {
+        const response = await fetch(`${baseApiUrl}/route`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: apiKey!!,
           },
-          body: JSON.stringify({
-            coordinates,
-          }),
+          body: JSON.stringify(locations || selectedAttractions),
+        });
+        const data = await response.json();
+        setRoute(data);
+        if (data && data.length > 0) {
+          setInitialRegion({
+            latitude: data[0].lat,
+            longitude: data[0].lng,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          });
         }
-      );
-
-      const data = await response.json();
-      if (data.routes && data.routes.length > 0) {
-        const decodedCoords = polyline.decode(data.routes[0].geometry);
-        const routeCoords = decodedCoords.map(([lat, lng]) => ({
-          latitude: lat,
-          longitude: lng,
-        }));
-        setRoadRoute(routeCoords);
+        return data;
+      } catch (error) {
+        console.error("Error fetching routeaa:", error);
       }
-    } catch (error) {
-      console.error("Error fetching road route:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [selectedAttractions]
+  );
+
+  const fetchRoadRoute = useCallback(
+    async (nodes: any) => {
+      const coordinates = nodes.map((node: any) => [node.lng, node.lat]);
+      const apiKey = process.env.EXPO_PUBLIC_ORS_API_KEY;
+
+      try {
+        const response = await fetch(
+          "https://api.openrouteservice.org/v2/directions/foot-walking",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: apiKey!!,
+            },
+            body: JSON.stringify({
+              coordinates,
+            }),
+          }
+        );
+
+        const data = await response.json();
+        if (data.routes && data.routes.length > 0) {
+          const decodedCoords = polyline.decode(data.routes[0].geometry);
+          const routeCoords = decodedCoords.map(([lat, lng]) => ({
+            latitude: lat,
+            longitude: lng,
+          }));
+          setRoadRoute(routeCoords);
+        }
+      } catch (error) {
+        console.error("Error fetching road route:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [selectedAttractions]
+  );
 
   const [selectedAttraction, setSelectedAttraction] =
     useState<Attraction | null>(null);
 
   const panelAnim = useRef(new Animated.Value(SCREEN_WIDTH * 0.7)).current;
 
-  const openPanel = (attraction: any) => {
+  const openPanel = useCallback((attraction: any) => {
     setSelectedAttraction(attraction);
 
     Animated.timing(panelAnim, {
@@ -179,9 +188,9 @@ const Map = () => {
       duration: 300,
       useNativeDriver: false,
     }).start();
-  };
+  }, []);
 
-  const closePanel = () => {
+  const closePanel = useCallback(() => {
     Animated.timing(panelAnim, {
       toValue: SCREEN_WIDTH * 0.7,
       duration: 300,
@@ -189,7 +198,7 @@ const Map = () => {
     }).start(() => {
       setSelectedAttraction(null);
     });
-  };
+  }, []);
 
   // if (selectedAttractions.length < 1) {
   //   return (
@@ -359,6 +368,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  card: {
+    marginVertical: 8,
+    marginHorizontal: 16,
+  },
+  cover: {
+    height: 200,
+  },
+  // description: {
+  //   marginVertical: 8,
+  // },
 });
 
 export default Map;

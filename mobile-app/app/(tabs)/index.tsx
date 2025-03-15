@@ -4,20 +4,23 @@ import {
   View,
   Text,
   FlatList,
-  Image,
-  TouchableOpacity,
   StyleSheet,
-  Button,
   Switch,
+  SafeAreaView,
 } from "react-native";
 import { useStore } from "../store/AttractionStore";
 import { baseApiUrl } from "@/constants/Api";
+import AttractionCard from "@/components/AttractionCard";
+import { Picker } from "@react-native-picker/picker";
 
 const AttractionsPage = () => {
   const [attractions, setAttractions] = useState<Attraction[]>([]);
   const { selectedAttractions, setSelectedAttractions } = useStore();
   const router = useRouter();
   const [showOnlySelected, setShowOnlySelected] = useState(false);
+
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRoute();
@@ -49,19 +52,49 @@ const AttractionsPage = () => {
   };
 
   const renderItem = ({ item }: any) => (
-    <View style={styles.itemContainer}>
-      <Image source={{ uri: item.imageUrl }} style={styles.image} />
-      <View style={styles.infoContainer}>
-        <Text style={styles.title}>{item.name}</Text>
-        <Text style={styles.description}>{item.description}</Text>
-        <TouchableOpacity onPress={() => toggleRoute(item)}>
-          <Text style={styles.routeButton}>
-            {selectedAttractions.find((a) => a.id === item.id)
-              ? "Remove from Route"
-              : "Add to Route"}
-          </Text>
-        </TouchableOpacity>
+    <AttractionCard
+      title={item.name}
+      description={item.description}
+      image={item.imageUrl}
+      inRoute={selectedAttractions.find((a) => a.id === item.id)}
+      onClick={() => toggleRoute(item)}
+      category={item.category}
+      city={item.city}
+      rating={item.rating}
+      price={item.price}
+    />
+  );
+
+  const header = () => (
+    <View style={styles.headerContainer}>
+      <Text style={styles.headerTitle}>Route Attractions</Text>
+
+      <View style={styles.filterRow}>
+        <Text style={styles.filterLabel}>Only In Route</Text>
+        <Switch value={showOnlySelected} onValueChange={setShowOnlySelected} />
       </View>
+
+      <Picker
+        style={styles.picker}
+        selectedValue={selectedCategory}
+        onValueChange={(val) => setSelectedCategory(val)}
+      >
+        <Picker.Item label="All Categories" value={null} />
+        <Picker.Item label="Museums" value="museum" />
+        <Picker.Item label="Parks" value="park" />
+        <Picker.Item label="Food" value="food" />
+      </Picker>
+
+      <Picker
+        style={styles.picker}
+        selectedValue={selectedCity}
+        onValueChange={(val) => setSelectedCity(val)}
+      >
+        <Picker.Item label="All Cities" value={null} />
+        <Picker.Item label="New York" value="New York" />
+        <Picker.Item label="Paris" value="Paris" />
+        <Picker.Item label="Tokyo" value="Tokyo" />
+      </Picker>
     </View>
   );
 
@@ -71,29 +104,17 @@ const AttractionsPage = () => {
       .length < 1
   )
     return (
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerText}>Route Attractions</Text>
-          <Switch
-            value={showOnlySelected}
-            onValueChange={(value: any) => setShowOnlySelected(value)}
-          />
-        </View>
+      <SafeAreaView style={styles.safeArea}>
+        {header()}
         <View style={styles.loadingContainer}>
           <Text>No attractions added to route</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Route Attractions</Text>
-        <Switch
-          value={showOnlySelected}
-          onValueChange={(value: any) => setShowOnlySelected(value)}
-        />
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      {header()}
       <FlatList
         data={
           showOnlySelected
@@ -106,26 +127,32 @@ const AttractionsPage = () => {
         renderItem={renderItem}
         contentContainerStyle={styles.list}
       />
-      <Button
+      {/* <FAB
+        style={{
+          position: "absolute",
+          margin: 16,
+          right: 0,
+          bottom: 0,
+        }}
+        label="Generate Route"
+        icon="map"
         disabled={selectedAttractions.length < 1}
-        title="Generate Route"
         onPress={() => router.push("/explore")}
-      />
-    </View>
+      /> */}
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    paddingTop: 50,
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   loadingContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  headerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    justifyContent: "flex-end",
   },
   headerText: {
     fontSize: 16,
@@ -166,6 +193,30 @@ const styles = StyleSheet.create({
   routeButton: {
     marginTop: 8,
     color: "blue",
+  },
+  headerContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#f9f9f9",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  filterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  filterLabel: {
+    marginRight: 8,
+    fontSize: 14,
+  },
+  picker: {
+    height: 53,
+    width: "100%",
+    marginTop: 4,
   },
 });
 
