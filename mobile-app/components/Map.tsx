@@ -15,6 +15,7 @@ import * as Location from "expo-location";
 import { useStore } from "@/app/store/AttractionStore";
 import Entypo from "@expo/vector-icons/Entypo";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { baseApiUrl } from "@/constants/Api";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -107,7 +108,7 @@ const Map = () => {
 
   const fetchRoute = async (locations?: any) => {
     try {
-      const response = await fetch("http://10.0.2.2:8080/route", {
+      const response = await fetch(`${baseApiUrl}/route`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -279,6 +280,7 @@ const Map = () => {
       )}
 
       <Animated.View
+        onTouchEnd={closePanel}
         style={[styles.sidePanel, { transform: [{ translateX: panelAnim }] }]}
       >
         {/* <Pressable onPress={closePanel} style={styles.closeButton}>
@@ -286,7 +288,7 @@ const Map = () => {
         </Pressable> */}
 
         {selectedAttraction && (
-          <SafeAreaView onTouchEnd={closePanel} style={styles.infoContainer}>
+          <SafeAreaView style={styles.infoContainer}>
             <Text style={styles.title}>{selectedAttraction.name}</Text>
             <Image
               source={{ uri: selectedAttraction.imageUrl }}

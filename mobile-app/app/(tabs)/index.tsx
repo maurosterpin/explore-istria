@@ -11,6 +11,7 @@ import {
   Switch,
 } from "react-native";
 import { useStore } from "../store/AttractionStore";
+import { baseApiUrl } from "@/constants/Api";
 
 const AttractionsPage = () => {
   const [attractions, setAttractions] = useState<Attraction[]>([]);
@@ -24,7 +25,7 @@ const AttractionsPage = () => {
 
   const fetchRoute = async () => {
     try {
-      const response = await fetch("http://10.0.2.2:8080/get");
+      const response = await fetch(`${baseApiUrl}/get`);
       const data = await response.json();
       setAttractions(data);
       return data;
