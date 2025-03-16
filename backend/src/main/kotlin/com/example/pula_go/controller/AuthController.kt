@@ -2,23 +2,32 @@ package com.example.pula_go.controller
 
 import com.example.pula_go.model.User
 import com.example.pula_go.repository.UserRepository
+import jakarta.validation.Valid
+import org.springframework.http.ResponseEntity
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
-import jakarta.validation.Valid
 
 data class RegistrationRequest(
     val username: String,
     val password: String
 )
 
+data class LoginRequest(
+    val username: String,
+    val password: String
+)
+
 @RestController
-@RequestMapping("/register")
 class AuthController(
     private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val authenticationManager: AuthenticationManager
 ) {
 
-    @PostMapping
+    @PostMapping("/register")
     fun register(@Valid @RequestBody request: RegistrationRequest): String {
         if (userRepository.findByUsername(request.username) != null) {
             return "Username already exists"
@@ -29,6 +38,14 @@ class AuthController(
         )
         userRepository.save(newUser)
         return "User registered successfully"
+    }
+
+    @PostMapping("/login")
+    fun login(@Valid @RequestBody loginRequest: LoginRequest): ResponseEntity<String> {
+        val authToken = UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password)
+        val authentication = authenticationManager.authenticate(authToken)
+        SecurityContextHolder.getContext().authentication = authentication
+        return ResponseEntity.ok("Login successful")
     }
 }
 
