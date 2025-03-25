@@ -31,7 +31,7 @@ const AttractionsPage = () => {
   const fetchAttractions = async () => {
     try {
       const response = await fetch(
-        `${baseApiUrl}/get?${
+        `${baseApiUrl}/public/get?${
           selectedCategory ? `category=${selectedCategory}` : ""
         }${selectedCity ? `&city=${selectedCity}` : ""}`
       );

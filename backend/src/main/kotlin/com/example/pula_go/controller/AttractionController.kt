@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @CrossOrigin(origins = ["http://localhost:8081"])
+
 class AttractionController(
     private val attractionService: AttractionService,
     private val routeGenerator: RouteGenerator
@@ -18,7 +19,7 @@ class AttractionController(
 //        return attractionService.fetchAndSaveAttractions()
 //    }
 
-    @GetMapping("/get")
+    @GetMapping("/public/get")
     fun getAttractions(
         @RequestParam(required = false) category: Category?,
         @RequestParam(required = false) city: String?,
@@ -26,7 +27,7 @@ class AttractionController(
         return attractionService.getAllAttractions(category, city)
     }
 
-    @PostMapping("/route")
+    @PostMapping("/public/route")
     fun getRoute(@RequestBody attractions: List<Attraction>): List<Attraction> {
         return routeGenerator.generateRoute(attractions)
     }

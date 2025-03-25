@@ -111,7 +111,7 @@ const Map = () => {
   const fetchRoute = useCallback(
     async (locations?: any) => {
       try {
-        const response = await fetch(`${baseApiUrl}/route`, {
+        const response = await fetch(`${baseApiUrl}/public/route`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
