@@ -27,7 +27,7 @@ class AuthController(
     private val authenticationManager: AuthenticationManager
 ) {
 
-    @PostMapping("/register")
+    @PostMapping("/public/register")
     fun register(@Valid @RequestBody request: RegistrationRequest): String {
         if (userRepository.findByUsername(request.username) != null) {
             return "Username already exists"
@@ -40,7 +40,7 @@ class AuthController(
         return "User registered successfully"
     }
 
-    @PostMapping("/login")
+    @PostMapping("/public/login")
     fun login(@Valid @RequestBody loginRequest: LoginRequest): ResponseEntity<String> {
         val authToken = UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password)
         val authentication = authenticationManager.authenticate(authToken)

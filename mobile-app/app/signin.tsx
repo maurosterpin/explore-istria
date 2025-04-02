@@ -9,16 +9,31 @@ import {
 } from "react-native";
 import { Stack, Link } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { baseApiUrl } from "@/constants/Api";
 
 export default function SignInScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSignIn = () => {
-    if (username === "user" && password === "pass") {
-      Alert.alert("Success", "Logged in successfully!");
-    } else {
-      Alert.alert("Error", "Invalid credentials");
+  const handleSignIn = async () => {
+    try {
+      const response = await fetch(`http:${baseApiUrl}/public/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // await AsyncStorage.setItem("jwtToken", data.token);
+        Alert.alert("Success", "Logged in successfully!");
+        //router.back();
+      } else {
+        const errorData = await response.json();
+        Alert.alert("Error", errorData.message || "Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      Alert.alert("Error", "An error occurred. Please try again later.");
     }
   };
 
