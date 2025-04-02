@@ -7,11 +7,12 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import { Stack, Link } from "expo-router";
+import { Stack, Link, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { baseApiUrl } from "@/constants/Api";
 
 export default function SignInScreen() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -26,7 +27,7 @@ export default function SignInScreen() {
         const data = await response.json();
         // await AsyncStorage.setItem("jwtToken", data.token);
         Alert.alert("Success", "Logged in successfully!");
-        //router.back();
+        router.push("/explore");
       } else {
         const errorData = await response.json();
         Alert.alert("Error", errorData.message || "Invalid credentials");

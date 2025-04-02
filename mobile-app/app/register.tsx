@@ -7,16 +7,18 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { Link, Stack } from "expo-router";
+import { Link, Stack, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { baseApiUrl } from "@/constants/Api";
 
 export default function RegisterScreen() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!username || !email || !password || !confirm) {
       Alert.alert("Error", "All fields are required");
       return;
@@ -27,7 +29,23 @@ export default function RegisterScreen() {
       return;
     }
 
-    Alert.alert("Success", "Registered successfully!");
+    try {
+      const response = await fetch(`http://${baseApiUrl}/public/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+      });
+      if (response.ok) {
+        Alert.alert("Success", "Registered successfully!");
+        router.push("/explore");
+      } else {
+        const errorData = await response.json();
+        Alert.alert("Error", errorData.message || "Registration failed");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      Alert.alert("Error", "An error occurred. Please try again later.");
+    }
   };
 
   return (
