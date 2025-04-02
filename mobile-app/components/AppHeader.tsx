@@ -1,4 +1,3 @@
-// AppHeader.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -10,10 +9,12 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@/app/store/AttractionStore";
 import { Portal } from "react-native-paper";
+import { useRouter } from "expo-router";
 
 const AppHeader: React.FC = () => {
   const store = useStore();
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const router = useRouter();
 
   const toggleDropdown = () => setDropdownVisible((prev) => !prev);
 
@@ -50,7 +51,7 @@ const AppHeader: React.FC = () => {
           </Portal>
         </View>
       ) : (
-        <TouchableOpacity onPress={() => store.setIsLoggedIn(true)}>
+        <TouchableOpacity onPress={() => router.push("/signin")}>
           <Text style={styles.signIn}>Sign In</Text>
         </TouchableOpacity>
       )}
