@@ -7,6 +7,8 @@ type GlobalStore = {
   setSelectedCity: (value: string | null) => void;
   selectedCategory: string | null;
   setSelectedCategory: (value: string | null) => void;
+  isLoggedIn: boolean;
+  setIsLoggedIn: (value: boolean) => void;
 };
 
 const StoreContext = createContext<GlobalStore | undefined>(undefined);
@@ -17,6 +19,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   const value: GlobalStore = {
     selectedAttractions,
@@ -25,6 +28,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setSelectedCategory,
     selectedCity,
     setSelectedCity,
+    isLoggedIn,
+    setIsLoggedIn,
   };
 
   return (

@@ -12,6 +12,8 @@ import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { StoreProvider } from "./store/AttractionStore";
+import AppHeader from "@/components/AppHeader";
+import { Provider } from "react-native-paper";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -35,11 +37,25 @@ export default function RootLayout() {
   return (
     <StoreProvider>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
+        <Provider>
+          <Stack
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: "#237dc7",
+              },
+              headerTintColor: "#fff",
+              headerTitleStyle: {
+                fontWeight: "bold",
+              },
+              title: "Explore Istria",
+              headerRight: () => <AppHeader />,
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: true }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="auto" />
+        </Provider>
       </ThemeProvider>
     </StoreProvider>
   );

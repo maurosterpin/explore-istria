@@ -130,7 +130,7 @@ const Map = () => {
         }
         return data;
       } catch (error) {
-        console.error("Error fetching routeaa:", error);
+        console.error("Error fetching route:", error);
       }
     },
     [selectedAttractions]
@@ -275,6 +275,7 @@ const Map = () => {
               position: "absolute",
               margin: 16,
               bottom: 0,
+              backgroundColor: "#c6d8ff",
             }}
             label={
               isLoading

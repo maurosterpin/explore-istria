@@ -153,7 +153,6 @@ const AttractionsPage = () => {
 
 const styles = StyleSheet.create({
   safeArea: {
-    paddingTop: 50,
     flex: 1,
     backgroundColor: "#fff",
   },
