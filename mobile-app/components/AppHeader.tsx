@@ -10,23 +10,25 @@ import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@/app/store/AttractionStore";
 import { Portal } from "react-native-paper";
 import { useRouter } from "expo-router";
+import { useRoute } from "@react-navigation/native";
 
 const AppHeader: React.FC = () => {
   const store = useStore();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const router = useRouter();
+  const route = useRoute();
 
   const toggleDropdown = () => setDropdownVisible((prev) => !prev);
 
   const handleOption = (option: "profile" | "signOut") => {
     //onProfileOptionSelected(option);
-    if (option === "signOut") store.setIsLoggedIn(false);
+    if (option === "signOut") store.setUser(null);
     setDropdownVisible(false);
   };
 
   return (
     <View style={styles.header}>
-      {store.isLoggedIn ? (
+      {store.user !== null ? (
         <View style={styles.userContainer}>
           <TouchableOpacity onPress={toggleDropdown}>
             <Ionicons name="person-circle-outline" size={32} color="#fff" />
@@ -50,11 +52,11 @@ const AppHeader: React.FC = () => {
             )}
           </Portal>
         </View>
-      ) : (
+      ) : route.name !== "signin" && route.name !== "register" ? (
         <TouchableOpacity onPress={() => router.push("/signin")}>
           <Text style={styles.signIn}>Sign In</Text>
         </TouchableOpacity>
-      )}
+      ) : null}
     </View>
   );
 };

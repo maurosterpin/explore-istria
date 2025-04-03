@@ -10,24 +10,29 @@ import {
 import { Stack, Link, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { baseApiUrl } from "@/constants/Api";
+import { useStore } from "./store/AttractionStore";
 
 export default function SignInScreen() {
   const router = useRouter();
+  const store = useStore();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSignIn = async () => {
     try {
-      const response = await fetch(`http:${baseApiUrl}/public/login`, {
+      console.log("route", `${baseApiUrl}/public/login`);
+      console.log("username", username, "password", password);
+      const response = await fetch(`${baseApiUrl}/public/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
       if (response.ok) {
-        const data = await response.json();
+        const user = await response.json();
+        store.setUser(user);
         // await AsyncStorage.setItem("jwtToken", data.token);
         Alert.alert("Success", "Logged in successfully!");
-        router.push("/explore");
+        router.back();
       } else {
         const errorData = await response.json();
         Alert.alert("Error", errorData.message || "Invalid credentials");

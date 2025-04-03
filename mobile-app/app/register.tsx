@@ -30,14 +30,14 @@ export default function RegisterScreen() {
     }
 
     try {
-      const response = await fetch(`http://${baseApiUrl}/public/register`, {
+      const response = await fetch(`${baseApiUrl}/public/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
       });
       if (response.ok) {
         Alert.alert("Success", "Registered successfully!");
-        router.push("/explore");
+        router.back();
       } else {
         const errorData = await response.json();
         Alert.alert("Error", errorData.message || "Registration failed");

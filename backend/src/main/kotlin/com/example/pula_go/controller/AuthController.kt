@@ -41,11 +41,12 @@ class AuthController(
     }
 
     @PostMapping("/public/login")
-    fun login(@Valid @RequestBody loginRequest: LoginRequest): ResponseEntity<String> {
+    fun login(@Valid @RequestBody loginRequest: LoginRequest): ResponseEntity<User> {
         val authToken = UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password)
         val authentication = authenticationManager.authenticate(authToken)
         SecurityContextHolder.getContext().authentication = authentication
-        return ResponseEntity.ok("Login successful")
+        val user = userRepository.findByUsername(loginRequest.username)
+        return ResponseEntity.ok(user)
     }
 }
 

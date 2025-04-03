@@ -303,7 +303,7 @@ const Map = () => {
         </Pressable> */}
 
         {selectedAttraction && (
-          <SafeAreaView style={styles.infoContainer}>
+          <View style={styles.infoContainer}>
             <Text style={styles.title}>{selectedAttraction.name}</Text>
             <Image
               source={{ uri: selectedAttraction.imageUrl }}
@@ -312,7 +312,7 @@ const Map = () => {
             <Text style={styles.description}>
               {selectedAttraction.description}
             </Text>
-          </SafeAreaView>
+          </View>
         )}
       </Animated.View>
     </View>
