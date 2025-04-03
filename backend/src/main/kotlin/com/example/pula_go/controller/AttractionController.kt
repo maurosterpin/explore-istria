@@ -2,8 +2,10 @@ package com.example.pula_go.controller
 
 import com.example.pula_go.model.Attraction
 import com.example.pula_go.model.Category
+import com.example.pula_go.model.RateAttractionRequest
 import com.example.pula_go.service.AttractionService
 import com.example.pula_go.service.RouteGenerator
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -35,6 +37,11 @@ class AttractionController(
     @PutMapping("/update")
     fun updateAttractions(@RequestBody attractions: List<Attraction>): List<Attraction> {
         return attractionService.updateExistingAttractions(attractions)
+    }
+
+    @PostMapping("/attraction/rate")
+    fun rateAttraction(@RequestBody rateAttractionRequest: RateAttractionRequest): ResponseEntity<String> {
+        return ResponseEntity.ok("Success")
     }
 
     @DeleteMapping("/delete/{attractionId}")

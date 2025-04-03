@@ -6,13 +6,14 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
+  Alert,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import polyline from "@mapbox/polyline";
 import * as Location from "expo-location";
 import { useStore } from "@/app/store/AttractionStore";
 import Entypo from "@expo/vector-icons/Entypo";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Rating } from "react-native-ratings";
 import { baseApiUrl } from "@/constants/Api";
 import { FAB } from "react-native-paper";
 
@@ -25,7 +26,7 @@ const Map = () => {
     null
   );
   const [useMyLocation, setUseMyLocation] = useState<any>(false);
-  const { selectedAttractions } = useStore();
+  const { selectedAttractions, user } = useStore();
   const [userLocation, setUserLocation] =
     useState<Location.LocationObjectCoords | null>(null);
   const [heading, setHeading] = useState<number>(0);
@@ -199,6 +200,24 @@ const Map = () => {
     });
   }, []);
 
+  const handleRating = async (attractionId: number, rating: number) => {
+    try {
+      const response = await fetch(`${baseApiUrl}/attraction/rate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attractionId, rating }),
+      });
+      if (response.ok) {
+        Alert.alert("Thank you", "Your rating has been submitted.");
+      } else {
+        Alert.alert("Error", "Could not submit rating.");
+      }
+    } catch (error) {
+      console.error("Rating error:", error);
+      Alert.alert("Error", "An error occurred while submitting rating.");
+    }
+  };
+
   // if (selectedAttractions.length < 1) {
   //   return (
   //     <View style={styles.loadingContainer}>
@@ -295,7 +314,6 @@ const Map = () => {
       )}
 
       <Animated.View
-        onTouchEnd={closePanel}
         style={[styles.sidePanel, { transform: [{ translateX: panelAnim }] }]}
       >
         {/* <Pressable onPress={closePanel} style={styles.closeButton}>
@@ -312,6 +330,26 @@ const Map = () => {
             <Text style={styles.description}>
               {selectedAttraction.description}
             </Text>
+            {/* {selectedAttraction.price && (
+              <Text style={styles.rating}>
+                Price: {selectedAttraction.price}€
+              </Text>
+            )} */}
+            {user && (
+              <>
+                <Text style={styles.rating}>Rate attraction:</Text>
+                <Rating
+                  type="star"
+                  ratingCount={5}
+                  imageSize={30}
+                  startingValue={selectedAttraction.rating || 0}
+                  onFinishRating={(rating: any) =>
+                    handleRating(selectedAttraction.id, rating)
+                  }
+                  style={{ paddingVertical: 10, alignSelf: "flex-start" }}
+                />
+              </>
+            )}
           </View>
         )}
       </Animated.View>
@@ -352,11 +390,17 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     padding: 16,
+    display: "flex",
   },
   title: {
     fontWeight: "bold",
     fontSize: 18,
     marginBottom: 8,
+  },
+  rating: {
+    fontWeight: "bold",
+    fontSize: 14,
+    marginTop: 8,
   },
   image: {
     width: "100%",

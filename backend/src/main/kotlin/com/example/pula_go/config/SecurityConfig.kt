@@ -23,7 +23,7 @@ class SecurityConfig(
             .csrf { csrf -> csrf.disable() }
             .authorizeHttpRequests { authz ->
                 authz
-                    .requestMatchers("/public/**", "/register", "/login").permitAll()
+                    .requestMatchers("/public/**").permitAll()
                     .anyRequest().authenticated()
             }
             .httpBasic { }
