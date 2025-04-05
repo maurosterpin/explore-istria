@@ -47,17 +47,17 @@ export default function TabLayout() {
           ),
         }}
       />
-      {store.username && (
-        <Tabs.Screen
-          name="generate"
-          options={{
-            title: "Feed",
-            tabBarIcon: ({ color }) => (
-              <FontAwesome6 name="newspaper" size={24} color={color} />
-            ),
-          }}
-        />
-      )}
+
+      <Tabs.Screen
+        name="routes"
+        options={{
+          title: "Explore Routes",
+          tabBarIcon: ({ color }) => (
+            <FontAwesome6 name="newspaper" size={24} color={color} />
+          ),
+        }}
+      />
+
       <Tabs.Screen
         name="index"
         options={{
