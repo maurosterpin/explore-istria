@@ -29,4 +29,6 @@ interface AttractionRepository : JpaRepository<Attraction, Long> {
         @Param("city") city: String?,
     ): List<Attraction?>?
 
+    fun findByIdIn(ids: List<Long>): List<Attraction>
+
 }

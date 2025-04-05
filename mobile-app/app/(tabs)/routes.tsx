@@ -7,11 +7,13 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { baseApiUrl } from "@/constants/Api";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
+import { useStore } from "../store/AttractionStore";
 
 type RoutePlan = {
   id: number;
@@ -21,7 +23,7 @@ type RoutePlan = {
   description: string;
   upvotes: number;
   commentCount: number;
-  thumbnailUrl: string;
+  attractionIds: string;
 };
 
 const sortOptions = ["Latest", "Most Upvoted"];
@@ -41,6 +43,7 @@ export default function RoutesPage() {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const router = useRouter();
+  const store = useStore();
 
   const fetchRoutes = async () => {
     setLoading(true);
@@ -51,9 +54,10 @@ export default function RoutesPage() {
       if (selectedCategory) query += `category=${selectedCategory}&`;
       const response = await fetch(`${baseApiUrl}/public/routes?${query}`);
       const data = await response.json();
+      console.log("data", data);
       setRoutes(data);
     } catch (error) {
-      console.error("Error fetching routes:", error);
+      console.error("Error fetching routess:", error);
     } finally {
       setLoading(false);
     }
@@ -62,6 +66,28 @@ export default function RoutesPage() {
   useEffect(() => {
     fetchRoutes();
   }, [selectedSort, selectedCity, selectedCategory]);
+
+  const useRoute = async (attractionIds: string) => {
+    console.log("attractionIds", attractionIds);
+    try {
+      const response = await fetch(`${baseApiUrl}/public/use`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attractionIds }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        store.setSelectedAttractions(data);
+        router.replace("/explore");
+      } else {
+        const errorData = await response.json();
+        Alert.alert("Error", errorData.message || "Failed to use route");
+      }
+    } catch (error) {
+      console.error("Failed to use route:", error);
+      Alert.alert("Error", "An error occurred. Please try again later.");
+    }
+  };
 
   const renderRouteCard = ({ item }: { item: RoutePlan }) => (
     <View style={styles.card}>
@@ -80,9 +106,7 @@ export default function RoutesPage() {
           <Text style={styles.actionText}>{item.commentCount}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onAccessibilityTap={() => {
-            router.replace("/explore");
-          }}
+          onPress={() => useRoute(item.attractionIds)}
           style={styles.useRouteButton}
         >
           <Text style={styles.useRouteText}>Use Route</Text>

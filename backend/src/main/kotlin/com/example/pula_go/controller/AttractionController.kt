@@ -51,6 +51,12 @@ class AttractionController(
         return routeGenerator.generateRouteWithPreferences(allAttractions, prefs)
     }
 
+    @PostMapping("/public/use")
+    fun useRoute(@RequestBody attractionIds: String): List<Attraction> {
+        val attractions = attractionService.useRoute(attractionIds)
+        return attractions
+    }
+
     @DeleteMapping("/delete/{attractionId}")
     fun deleteAttraction(@PathVariable attractionId: Long) {
         return attractionService.deleteAttraction(attractionId)

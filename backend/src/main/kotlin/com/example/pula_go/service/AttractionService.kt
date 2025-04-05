@@ -35,4 +35,12 @@ class AttractionService(
     fun deleteAttraction(id: Long) {
         attractionRepository.deleteById(id)
     }
+
+    fun useRoute(ids: String): List<Attraction> {
+        val idsList = ids
+            .split(",")
+            .mapNotNull { it.trim().toLongOrNull() }
+        val attractions = attractionRepository.findByIdIn(idsList)
+        return attractions
+    }
 }
