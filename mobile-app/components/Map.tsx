@@ -409,8 +409,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   modeIconsContainer: {
     position: "absolute",
-    top: 50,
-    right: 10,
+    top: 60,
+    left: 10,
     flexDirection: "column",
     backgroundColor: "rgba(255,255,255,0.8)",
     borderRadius: 8,
