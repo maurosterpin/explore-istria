@@ -11,6 +11,7 @@ import { Stack, Link, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { baseApiUrl } from "@/constants/Api";
 import { useStore } from "./store/AttractionStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -28,9 +29,9 @@ export default function SignInScreen() {
         body: JSON.stringify({ username, password }),
       });
       if (response.ok) {
-        const user = await response.json();
-        store.setUser(user);
-        // await AsyncStorage.setItem("jwtToken", data.token);
+        const data = await response.json();
+        store.setUsername(data.username);
+        await AsyncStorage.setItem("jwtToken", data.token);
         Alert.alert("Success", "Logged in successfully!");
         router.back();
       } else {

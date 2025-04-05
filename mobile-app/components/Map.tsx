@@ -16,6 +16,7 @@ import Entypo from "@expo/vector-icons/Entypo";
 import { Rating } from "react-native-ratings";
 import { baseApiUrl } from "@/constants/Api";
 import { FAB } from "react-native-paper";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -26,7 +27,7 @@ const Map = () => {
     null
   );
   const [useMyLocation, setUseMyLocation] = useState<any>(false);
-  const { selectedAttractions, user } = useStore();
+  const { selectedAttractions, username } = useStore();
   const [userLocation, setUserLocation] =
     useState<Location.LocationObjectCoords | null>(null);
   const [heading, setHeading] = useState<number>(0);
@@ -202,9 +203,16 @@ const Map = () => {
 
   const handleRating = async (attractionId: number, rating: number) => {
     try {
+      const token = await AsyncStorage.getItem("jwtToken");
+      if (!token) {
+        throw new Error("No token found");
+      }
       const response = await fetch(`${baseApiUrl}/attraction/rate`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ attractionId, rating }),
       });
       if (response.ok) {
@@ -335,17 +343,17 @@ const Map = () => {
                 Price: {selectedAttraction.price}€
               </Text>
             )} */}
-            {user && (
+            {username && (
               <>
                 <Text style={styles.rating}>Rate attraction:</Text>
                 <Rating
                   type="star"
                   ratingCount={5}
                   imageSize={30}
-                  startingValue={selectedAttraction.rating || 0}
-                  onFinishRating={(rating: any) =>
-                    handleRating(selectedAttraction.id, rating)
-                  }
+                  //startingValue={selectedAttraction.rating || 0}
+                  onFinishRating={(rating: any) => {
+                    handleRating(selectedAttraction.id, rating);
+                  }}
                   style={{ paddingVertical: 10, alignSelf: "flex-start" }}
                 />
               </>

@@ -11,6 +11,7 @@ import { useStore } from "@/app/store/AttractionStore";
 import { Portal } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { useRoute } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AppHeader: React.FC = () => {
   const store = useStore();
@@ -20,15 +21,22 @@ const AppHeader: React.FC = () => {
 
   const toggleDropdown = () => setDropdownVisible((prev) => !prev);
 
-  const handleOption = (option: "profile" | "signOut") => {
-    //onProfileOptionSelected(option);
-    if (option === "signOut") store.setUser(null);
+  const handleOption = async (option: "profile" | "signOut") => {
+    if (option === "signOut") {
+      try {
+        await AsyncStorage.removeItem("jwtToken");
+        store.setUsername(null);
+        console.log("Token removed from AsyncStorage");
+      } catch (error) {
+        console.error("Error removing token:", error);
+      }
+    }
     setDropdownVisible(false);
   };
 
   return (
     <View style={styles.header}>
-      {store.user !== null ? (
+      {store.username !== null ? (
         <View style={styles.userContainer}>
           <TouchableOpacity onPress={toggleDropdown}>
             <Ionicons name="person-circle-outline" size={32} color="#fff" />
