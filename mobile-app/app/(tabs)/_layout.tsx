@@ -8,9 +8,11 @@ import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useStore } from "../store/AttractionStore";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const store = useStore();
 
   return (
     <Tabs
@@ -36,6 +38,26 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="generate-route"
+        options={{
+          title: "Generate Route",
+          tabBarIcon: ({ color }) => (
+            <FontAwesome6 name="map-location-dot" size={24} color={color} />
+          ),
+        }}
+      />
+      {store.username && (
+        <Tabs.Screen
+          name="generate"
+          options={{
+            title: "Feed",
+            tabBarIcon: ({ color }) => (
+              <FontAwesome6 name="newspaper" size={24} color={color} />
+            ),
+          }}
+        />
+      )}
       <Tabs.Screen
         name="index"
         options={{

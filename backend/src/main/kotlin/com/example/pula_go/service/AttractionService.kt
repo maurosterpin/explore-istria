@@ -30,6 +30,8 @@ class AttractionService(
 
     fun getAllAttractions(category: Category?, city: String?): List<Attraction?>? = attractionRepository.findAllByCustomParams(category, city)
 
+    fun getAllAttractions(): List<Attraction> = attractionRepository.findAll()
+
     fun deleteAttraction(id: Long) {
         attractionRepository.deleteById(id)
     }

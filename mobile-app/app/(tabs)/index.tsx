@@ -108,8 +108,9 @@ const AttractionsPage = () => {
 
   if (
     showOnlySelected &&
-    attractions.filter((attraction) => selectedAttractions.includes(attraction))
-      .length < 1
+    attractions.filter((attraction) =>
+      selectedAttractions.some((sel) => sel.id === attraction.id)
+    ).length < 1
   )
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -127,7 +128,7 @@ const AttractionsPage = () => {
         data={
           showOnlySelected
             ? attractions.filter((attraction) =>
-                selectedAttractions.includes(attraction)
+                selectedAttractions.some((sel) => sel.id === attraction.id)
               )
             : attractions
         }

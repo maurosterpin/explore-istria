@@ -3,6 +3,7 @@ package com.example.pula_go.controller
 import com.example.pula_go.model.Attraction
 import com.example.pula_go.model.Category
 import com.example.pula_go.model.RateAttractionRequest
+import com.example.pula_go.model.RoutePreferences
 import com.example.pula_go.service.AttractionService
 import com.example.pula_go.service.RouteGenerator
 import org.springframework.http.ResponseEntity
@@ -42,6 +43,12 @@ class AttractionController(
     @PostMapping("/attraction/rate")
     fun rateAttraction(@RequestBody rateAttractionRequest: RateAttractionRequest): ResponseEntity<String> {
         return ResponseEntity.ok("Success")
+    }
+
+    @PostMapping("/public/generate")
+    fun generateWithPrefs(@RequestBody prefs: RoutePreferences): List<Attraction> {
+        val allAttractions = attractionService.getAllAttractions()
+        return routeGenerator.generateRouteWithPreferences(allAttractions, prefs)
     }
 
     @DeleteMapping("/delete/{attractionId}")

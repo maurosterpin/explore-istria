@@ -7,6 +7,7 @@ import {
   Dimensions,
   Animated,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import polyline from "@mapbox/polyline";
@@ -17,6 +18,7 @@ import { Rating } from "react-native-ratings";
 import { baseApiUrl } from "@/constants/Api";
 import { FAB } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -33,6 +35,7 @@ const Map = () => {
   const [heading, setHeading] = useState<number>(0);
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [travelMode, setTravelMode] = useState("foot-walking");
 
   const watchLocSub = useRef<any>(null);
   const watchHeadSub = useRef<any>(null);
@@ -94,7 +97,7 @@ const Map = () => {
       locations = [...selectedAttractions, user];
     }
     generateRoute(locations);
-  }, [userLocation, selectedAttractions]);
+  }, [userLocation, selectedAttractions, travelMode]);
 
   const generateRoute = useCallback(
     async (userLoc?: any) => {
@@ -145,7 +148,7 @@ const Map = () => {
 
       try {
         const response = await fetch(
-          "https://api.openrouteservice.org/v2/directions/foot-walking",
+          `https://api.openrouteservice.org/v2/directions/${travelMode}`,
           {
             method: "POST",
             headers: {
@@ -350,7 +353,7 @@ const Map = () => {
                   type="star"
                   ratingCount={5}
                   imageSize={30}
-                  //startingValue={selectedAttraction.rating || 0}
+                  startingValue={selectedAttraction.rating || 0}
                   onFinishRating={(rating: any) => {
                     handleRating(selectedAttraction.id, rating);
                   }}
@@ -361,12 +364,62 @@ const Map = () => {
           </View>
         )}
       </Animated.View>
+      <View style={styles.modeIconsContainer}>
+        <TouchableOpacity onPress={() => setTravelMode("foot-walking")}>
+          <MaterialCommunityIcons
+            name="walk"
+            size={30}
+            color={travelMode === "foot-walking" ? "#118cf1" : "#444"}
+            style={styles.iconButton}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => setTravelMode("driving-car")}>
+          <MaterialCommunityIcons
+            name="car"
+            size={30}
+            color={travelMode === "driving-car" ? "#118cf1" : "#444"}
+            style={styles.iconButton}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => setTravelMode("cycling-regular")}>
+          <MaterialCommunityIcons
+            name="bike"
+            size={30}
+            color={travelMode === "cycling-regular" ? "#118cf1" : "#444"}
+            style={styles.iconButton}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => setTravelMode("wheelchair")}>
+          <MaterialCommunityIcons
+            name="wheelchair-accessibility"
+            size={30}
+            color={travelMode === "wheelchair" ? "#118cf1" : "#444"}
+            style={styles.iconButton}
+          />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  modeIconsContainer: {
+    position: "absolute",
+    top: 50,
+    right: 10,
+    flexDirection: "column",
+    backgroundColor: "rgba(255,255,255,0.8)",
+    borderRadius: 8,
+    padding: 8,
+    zIndex: 999,
+  },
+  iconButton: {
+    marginVertical: 6,
+  },
   buttonContainer: {
     position: "absolute",
     bottom: 40,
