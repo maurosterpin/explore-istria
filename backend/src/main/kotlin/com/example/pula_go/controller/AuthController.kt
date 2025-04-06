@@ -23,7 +23,8 @@ data class LoginRequest(
 
 data class LoginResponse(
     val token: String,
-    val username: String
+    val username: String,
+    val userId: Long
 )
 
 @RestController
@@ -55,7 +56,8 @@ class AuthController(
         SecurityContextHolder.getContext().authentication = authentication
 
         val token = jwtTokenProvider.generateToken(loginRequest.username)
-        val response = LoginResponse(token, loginRequest.username)
+        val user = userRepository.findByUsername(loginRequest.username)
+        val response = LoginResponse(token, loginRequest.username, user!!.id)
         return ResponseEntity.ok(response)
     }
 }

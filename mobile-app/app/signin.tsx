@@ -31,6 +31,7 @@ export default function SignInScreen() {
       if (response.ok) {
         const data = await response.json();
         store.setUsername(data.username);
+        store.setUserId(data.userId);
         await AsyncStorage.setItem("jwtToken", data.token);
         Alert.alert("Success", "Logged in successfully!");
         router.back();

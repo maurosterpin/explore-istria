@@ -11,6 +11,8 @@ type GlobalStore = {
   setIsLoggedIn: (value: boolean) => void;
   username: string | null;
   setUsername: (value: string | null) => void;
+  userId: number | null;
+  setUserId: (value: number | null) => void;
 };
 
 const StoreContext = createContext<GlobalStore | undefined>(undefined);
@@ -22,6 +24,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [userId, setUserId] = useState<number | null>(null);
   const [username, setUsername] = useState<string | null>(null);
 
   const value: GlobalStore = {
@@ -35,6 +38,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setIsLoggedIn,
     username,
     setUsername,
+    userId,
+    setUserId,
   };
 
   return (

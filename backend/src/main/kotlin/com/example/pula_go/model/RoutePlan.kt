@@ -21,5 +21,8 @@ data class RoutePlan(
     @Column(name = "attraction_ids", columnDefinition = "TEXT")
     val attractionIds: String,
 
-    var upvotes: Int = 0
+    var upvotes: Int = 0,
+
+    @Column(name = "userId")
+    val userId: Long,
 )

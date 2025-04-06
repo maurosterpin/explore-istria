@@ -8,12 +8,16 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Alert,
+  Modal,
+  TextInput,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { baseApiUrl } from "@/constants/Api";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { useStore } from "../store/AttractionStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type RoutePlan = {
   id: number;
@@ -24,9 +28,17 @@ type RoutePlan = {
   upvotes: number;
   commentCount: number;
   attractionIds: string;
+  userId: number;
 };
 
-const sortOptions = ["Latest", "Most Upvoted"];
+type RouteComment = {
+  id: number;
+  username: string;
+  comment: string;
+  createdAt?: string;
+};
+
+const sortOptions = ["Most Upvoted", "Latest"];
 const ALL_CITIES = ["Pula", "Rovinj", "Poreč", "Umag", "Novigrad"];
 const ALL_CATEGORIES = [
   "Historical",
@@ -42,8 +54,15 @@ export default function RoutesPage() {
   const [selectedSort, setSelectedSort] = useState("Latest");
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
   const router = useRouter();
   const store = useStore();
+  const { userId, username } = store;
+
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [selectedRoute, setSelectedRoute] = useState<RoutePlan | null>(null);
+  const [comments, setComments] = useState<RouteComment[]>([]);
+  const [newComment, setNewComment] = useState("");
 
   const fetchRoutes = async () => {
     setLoading(true);
@@ -52,12 +71,13 @@ export default function RoutesPage() {
       if (selectedSort) query += `sort=${selectedSort.toLowerCase()}&`;
       if (selectedCity) query += `city=${selectedCity}&`;
       if (selectedCategory) query += `category=${selectedCategory}&`;
+
       const response = await fetch(`${baseApiUrl}/public/routes?${query}`);
       const data = await response.json();
-      console.log("data", data);
+      console.log("fetched routes:", data);
       setRoutes(data);
     } catch (error) {
-      console.error("Error fetching routess:", error);
+      console.error("Error fetching routes:", error);
     } finally {
       setLoading(false);
     }
@@ -68,7 +88,7 @@ export default function RoutesPage() {
   }, [selectedSort, selectedCity, selectedCategory]);
 
   const useRoute = async (attractionIds: string) => {
-    console.log("attractionIds", attractionIds);
+    console.log("Using route with attractionIds:", attractionIds);
     try {
       const response = await fetch(`${baseApiUrl}/public/use`, {
         method: "POST",
@@ -89,6 +109,105 @@ export default function RoutesPage() {
     }
   };
 
+  const handleUpvote = async (routeItem: RoutePlan) => {
+    if (!userId) {
+      Alert.alert("Login Required", "You must be logged in to upvote a route.");
+      return;
+    }
+    const token = await AsyncStorage.getItem("jwtToken");
+    if (!token) {
+      throw new Error("No token found");
+    }
+    try {
+      const response = await fetch(
+        `${baseApiUrl}/routes/upvote/${routeItem.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
+      if (response.ok) {
+        const updatedRoute = await response.json();
+        setRoutes((prev) =>
+          prev.map((r) => (r.id === updatedRoute.id ? updatedRoute : r))
+        );
+      } else {
+        const errData = await response.json();
+        Alert.alert("Upvote Error", errData.message || "Failed to upvote.");
+      }
+    } catch (error) {
+      console.error("Upvote error:", error);
+      Alert.alert("Error", "An error occurred while upvoting.");
+    }
+  };
+
+  const openComments = async (routeItem: RoutePlan) => {
+    setSelectedRoute(routeItem);
+    setShowCommentsModal(true);
+    setComments([]);
+    setNewComment("");
+
+    try {
+      const response = await fetch(
+        `${baseApiUrl}/public/routes/comment/${routeItem.id}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setComments(data);
+      }
+    } catch (error) {
+      console.error("Fetch comments error:", error);
+    }
+  };
+
+  const postComment = async () => {
+    if (!userId) {
+      Alert.alert("Login Required", "You must be logged in to comment.");
+      return;
+    }
+    if (!selectedRoute) return;
+    const token = await AsyncStorage.getItem("jwtToken");
+    if (!token) {
+      throw new Error("No token found");
+    }
+    try {
+      console.log(
+        "body",
+        JSON.stringify({ userId, username, comment: newComment })
+      );
+      const response = await fetch(
+        `${baseApiUrl}/routes/comment/${selectedRoute.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId, username, comment: newComment }),
+        }
+      );
+      console.log("response", response);
+      if (response.ok) {
+        const createdComment = await response.json();
+        setComments((prev) => [createdComment, ...prev]);
+        setNewComment("");
+      } else {
+        const errData = await response.json();
+        Alert.alert(
+          "Comment Error",
+          errData.message || "Failed to post comment."
+        );
+      }
+    } catch (error) {
+      console.error("Comment post error:", error);
+      Alert.alert("Error", "An error occurred while posting comment.");
+    }
+  };
+
   const renderRouteCard = ({ item }: { item: RoutePlan }) => (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>{item.name}</Text>
@@ -96,15 +215,24 @@ export default function RoutesPage() {
         {item.city} • {item.category}
       </Text>
       <Text style={styles.cardDescription}>{item.description}</Text>
+
       <View style={styles.cardActions}>
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => handleUpvote(item)}
+        >
           <Ionicons name="thumbs-up-outline" size={20} color="#1158f1" />
           <Text style={styles.actionText}>{item.upvotes}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
+
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => openComments(item)}
+        >
           <Ionicons name="chatbubble-outline" size={20} color="#1158f1" />
-          <Text style={styles.actionText}>{item.commentCount}</Text>
+          <Text style={styles.actionText}>{item.commentCount || 0}</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={() => useRoute(item.attractionIds)}
           style={styles.useRouteButton}
@@ -130,6 +258,7 @@ export default function RoutesPage() {
             ))}
           </Picker>
         </View>
+
         <View style={styles.filterRow}>
           <Text style={styles.filterLabel}>City:</Text>
           <Picker
@@ -143,6 +272,7 @@ export default function RoutesPage() {
             ))}
           </Picker>
         </View>
+
         <View style={styles.filterRow}>
           <Text style={styles.filterLabel}>Category:</Text>
           <Picker
@@ -171,6 +301,56 @@ export default function RoutesPage() {
           renderItem={renderRouteCard}
           contentContainerStyle={styles.list}
         />
+      )}
+
+      {showCommentsModal && selectedRoute && (
+        <Modal
+          visible={showCommentsModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowCommentsModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalSheet}>
+              <View style={styles.handleBar} />
+
+              <Text style={styles.modalTitle}>
+                {selectedRoute.name} Comments
+              </Text>
+
+              <TouchableOpacity
+                style={styles.closeModalButton}
+                onPress={() => setShowCommentsModal(false)}
+              >
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+
+              <ScrollView style={styles.commentsList}>
+                {comments.map((c) => (
+                  <View key={c.id} style={styles.commentItem}>
+                    <Text style={styles.commentUsername}>{c.username}</Text>
+                    <Text style={styles.commentText}>{c.comment}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+
+              <View style={styles.addCommentContainer}>
+                <TextInput
+                  style={styles.commentInput}
+                  placeholder="Write a comment..."
+                  value={newComment}
+                  onChangeText={setNewComment}
+                />
+                <TouchableOpacity
+                  style={styles.postButton}
+                  onPress={postComment}
+                >
+                  <Text style={styles.postButtonText}>Post</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
     </SafeAreaView>
   );
@@ -244,5 +424,81 @@ const styles = StyleSheet.create({
   useRouteText: {
     color: "#fff",
     fontSize: 14,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  modalSheet: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    padding: 16,
+    height: "70%",
+  },
+  handleBar: {
+    width: 50,
+    height: 5,
+    backgroundColor: "#ccc",
+    borderRadius: 2.5,
+    alignSelf: "center",
+    marginBottom: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+    color: "#333",
+  },
+  closeModalButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+  },
+  commentsList: {
+    flex: 1,
+    marginTop: 10,
+  },
+  commentItem: {
+    backgroundColor: "#f9f9f9",
+    padding: 10,
+    borderRadius: 6,
+    marginBottom: 8,
+  },
+  commentUsername: {
+    fontWeight: "bold",
+    marginBottom: 4,
+    color: "#333",
+  },
+  commentText: {
+    fontSize: 14,
+    color: "#444",
+  },
+  addCommentContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  commentInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginRight: 8,
+  },
+  postButton: {
+    backgroundColor: "#118cf1",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+  },
+  postButtonText: {
+    color: "#fff",
+    fontSize: 16,
   },
 });

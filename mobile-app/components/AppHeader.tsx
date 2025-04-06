@@ -26,6 +26,7 @@ const AppHeader: React.FC = () => {
       try {
         await AsyncStorage.removeItem("jwtToken");
         store.setUsername(null);
+        store.setUserId(null);
         console.log("Token removed from AsyncStorage");
       } catch (error) {
         console.error("Error removing token:", error);
