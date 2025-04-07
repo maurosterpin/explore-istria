@@ -57,7 +57,7 @@ export default function RoutesPage() {
 
   const router = useRouter();
   const store = useStore();
-  const { userId, username } = store;
+  const { userId, username, userUpvotedRoutes, setUserUpvotedRoutes } = store;
 
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState<RoutePlan | null>(null);
@@ -84,8 +84,8 @@ export default function RoutesPage() {
   };
 
   useEffect(() => {
-    fetchRoutes();
-  }, [selectedSort, selectedCity, selectedCategory]);
+    if (!showCommentsModal) fetchRoutes();
+  }, [selectedSort, selectedCity, selectedCategory, showCommentsModal]);
 
   const useRoute = async (attractionIds: string) => {
     console.log("Using route with attractionIds:", attractionIds);
@@ -133,8 +133,11 @@ export default function RoutesPage() {
       if (response.ok) {
         const updatedRoute = await response.json();
         setRoutes((prev) =>
-          prev.map((r) => (r.id === updatedRoute.id ? updatedRoute : r))
+          prev.map((r) =>
+            r.id === updatedRoute.routePlan.id ? updatedRoute.routePlan : r
+          )
         );
+        setUserUpvotedRoutes(updatedRoute.userUpvotes);
       } else {
         const errData = await response.json();
         Alert.alert("Upvote Error", errData.message || "Failed to upvote.");
@@ -144,6 +147,50 @@ export default function RoutesPage() {
       Alert.alert("Error", "An error occurred while upvoting.");
     }
   };
+
+  async function handleUnvote(routeItem: RoutePlan) {
+    if (!userId) {
+      Alert.alert("Login Required", "You must be logged in to unvote a route.");
+      return;
+    }
+
+    const token = await AsyncStorage.getItem("jwtToken");
+    if (!token) {
+      Alert.alert("Error", "No token found. Please log in again.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${baseApiUrl}/routes/unvote/${routeItem.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
+
+      if (response.ok) {
+        const updatedRoute = await response.json();
+
+        setRoutes((prevRoutes) =>
+          prevRoutes.map((r) =>
+            r.id === updatedRoute.routePlan.id ? updatedRoute.routePlan : r
+          )
+        );
+        setUserUpvotedRoutes(updatedRoute.userUpvotes);
+      } else {
+        const errData = await response.json();
+        Alert.alert("Unvote Error", errData.message || "Failed to unvote.");
+      }
+    } catch (error) {
+      console.error("Unvote error:", error);
+      Alert.alert("Error", "An error occurred while removing your upvote.");
+    }
+  }
 
   const openComments = async (routeItem: RoutePlan) => {
     setSelectedRoute(routeItem);
@@ -193,7 +240,7 @@ export default function RoutesPage() {
       console.log("response", response);
       if (response.ok) {
         const createdComment = await response.json();
-        setComments((prev) => [createdComment, ...prev]);
+        setComments((prev) => [...prev, createdComment]);
         setNewComment("");
       } else {
         const errData = await response.json();
@@ -208,40 +255,49 @@ export default function RoutesPage() {
     }
   };
 
-  const renderRouteCard = ({ item }: { item: RoutePlan }) => (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{item.name}</Text>
-      <Text style={styles.cardMeta}>
-        {item.city} • {item.category}
-      </Text>
-      <Text style={styles.cardDescription}>{item.description}</Text>
+  const renderRouteCard = ({ item }: { item: RoutePlan }) => {
+    const isUpvoted = userUpvotedRoutes?.includes(item.id);
+    return (
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>{item.name}</Text>
+        <Text style={styles.cardMeta}>
+          {item.city} • {item.category}
+        </Text>
+        <Text style={styles.cardDescription}>{item.description}</Text>
 
-      <View style={styles.cardActions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => handleUpvote(item)}
-        >
-          <Ionicons name="thumbs-up-outline" size={20} color="#1158f1" />
-          <Text style={styles.actionText}>{item.upvotes}</Text>
-        </TouchableOpacity>
+        <View style={styles.cardActions}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={
+              isUpvoted ? () => handleUnvote(item) : () => handleUpvote(item)
+            }
+          >
+            <Ionicons
+              name={isUpvoted ? "thumbs-up" : "thumbs-up-outline"}
+              size={20}
+              color="#1158f1"
+            />
+            <Text style={styles.actionText}>{item.upvotes}</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => openComments(item)}
-        >
-          <Ionicons name="chatbubble-outline" size={20} color="#1158f1" />
-          <Text style={styles.actionText}>{item.commentCount || 0}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => openComments(item)}
+          >
+            <Ionicons name="chatbubble-outline" size={20} color="#1158f1" />
+            <Text style={styles.actionText}>{item.commentCount || 0}</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => useRoute(item.attractionIds)}
-          style={styles.useRouteButton}
-        >
-          <Text style={styles.useRouteText}>Use Route</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => useRoute(item.attractionIds)}
+            style={styles.useRouteButton}
+          >
+            <Text style={styles.useRouteText}>Use Route</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -288,7 +344,7 @@ export default function RoutesPage() {
         </View>
       </View>
 
-      {loading ? (
+      {loading && routes.length < 1 ? (
         <ActivityIndicator
           style={{ marginTop: 20 }}
           size="large"

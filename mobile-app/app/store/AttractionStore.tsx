@@ -13,6 +13,8 @@ type GlobalStore = {
   setUsername: (value: string | null) => void;
   userId: number | null;
   setUserId: (value: number | null) => void;
+  userUpvotedRoutes: number[] | null;
+  setUserUpvotedRoutes: (value: number[] | null) => void;
 };
 
 const StoreContext = createContext<GlobalStore | undefined>(undefined);
@@ -26,6 +28,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [userId, setUserId] = useState<number | null>(null);
   const [username, setUsername] = useState<string | null>(null);
+  const [userUpvotedRoutes, setUserUpvotedRoutes] = useState<number[] | null>(
+    null
+  );
 
   const value: GlobalStore = {
     selectedAttractions,
@@ -40,6 +45,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setUsername,
     userId,
     setUserId,
+    userUpvotedRoutes,
+    setUserUpvotedRoutes,
   };
 
   return (

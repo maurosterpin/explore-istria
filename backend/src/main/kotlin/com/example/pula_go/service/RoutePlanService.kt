@@ -2,9 +2,11 @@ package com.example.pula_go.service
 
 import com.example.pula_go.model.RoutePlan
 import com.example.pula_go.model.RoutePlanUpvote
+import com.example.pula_go.model.User
 import com.example.pula_go.repository.RouteCommentRepository
 import com.example.pula_go.repository.RoutePlanRepository
 import com.example.pula_go.repository.RoutePlanUpvoteRepository
+import com.example.pula_go.repository.UserRepository
 import org.springframework.stereotype.Service
 
 data class RoutePlanResponse(
@@ -24,6 +26,7 @@ class RoutePlanService(
     private val routePlanRepository: RoutePlanRepository,
     private val routePlanUpvoteRepository: RoutePlanUpvoteRepository,
     private val routeCommentRepository: RouteCommentRepository,
+    private val userRepository: UserRepository
 ) {
 
     fun createRoutePlan(routePlan: RoutePlan): RoutePlan {
@@ -82,4 +85,37 @@ class RoutePlanService(
         routePlan.upvotes += 1
         return routePlanRepository.save(routePlan)
     }
+
+    fun unvoteRoutePlan(id: Long, userId: Long): RoutePlan {
+        val routePlan = routePlanRepository.findById(id).orElseThrow {
+            IllegalArgumentException("Route plan not found")
+        }
+        val existingUpvote = routePlanUpvoteRepository.findByRoutePlanIdAndUserId(id, userId)
+            ?: throw IllegalArgumentException("User hasn't upvoted this route")
+
+        routePlanUpvoteRepository.delete(existingUpvote)
+        routePlan.upvotes -= 1
+        return routePlanRepository.save(routePlan)
+    }
+
+//    fun userUpvotesRoute(userId: Long, routeId: Long): RoutePlan? {
+//        val user = userRepository.findById(userId).orElseThrow { IllegalArgumentException("User not found") }
+//        val route = routePlanRepository.findById(routeId).orElseThrow { IllegalArgumentException("RoutePlan not found") }
+//
+//        if (!user.upvotedRoutes.contains(route)) {
+//            user.upvotedRoutes.add(route)
+//            userRepository.save(user)
+//        }
+//        return route
+//    }
+//
+//    fun userRemovesUpvote(userId: Long, routeId: Long): RoutePlan? {
+//        val user = userRepository.findById(userId).orElseThrow { IllegalArgumentException("User not found") }
+//        val route = routePlanRepository.findById(routeId).orElseThrow { IllegalArgumentException("RoutePlan not found") }
+//
+//        user.upvotedRoutes.remove(route)
+//        userRepository.save(user)
+//        return route
+//    }
+
 }

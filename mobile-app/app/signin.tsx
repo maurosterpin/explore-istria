@@ -30,8 +30,10 @@ export default function SignInScreen() {
       });
       if (response.ok) {
         const data = await response.json();
+        console.log("user", data);
         store.setUsername(data.username);
         store.setUserId(data.userId);
+        store.setUserUpvotedRoutes(data.upvotedRoutes);
         await AsyncStorage.setItem("jwtToken", data.token);
         Alert.alert("Success", "Logged in successfully!");
         router.back();

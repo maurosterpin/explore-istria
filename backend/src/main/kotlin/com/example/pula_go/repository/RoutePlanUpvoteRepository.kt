@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface RoutePlanUpvoteRepository : JpaRepository<RoutePlanUpvote, Long> {
+    fun findByUserId(userId: Long): List<RoutePlanUpvote>
     fun findByRoutePlanIdAndUserId(routePlanId: Long, userId: Long): RoutePlanUpvote?
 }
 

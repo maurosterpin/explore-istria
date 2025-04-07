@@ -1,6 +1,9 @@
 package com.example.pula_go.controller
 
+import com.example.pula_go.model.RoutePlan
+import com.example.pula_go.model.RoutePlanUpvote
 import com.example.pula_go.model.User
+import com.example.pula_go.repository.RoutePlanUpvoteRepository
 import com.example.pula_go.repository.UserRepository
 import com.example.pula_go.utils.JwtTokenProvider
 import jakarta.validation.Valid
@@ -24,7 +27,8 @@ data class LoginRequest(
 data class LoginResponse(
     val token: String,
     val username: String,
-    val userId: Long
+    val userId: Long,
+    val upvotedRoutes: List<Long>
 )
 
 @RestController
@@ -33,7 +37,8 @@ class AuthController(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val authenticationManager: AuthenticationManager,
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val routePlanUpvoteRepository: RoutePlanUpvoteRepository
 ) {
 
     @PostMapping("/register")
@@ -57,7 +62,9 @@ class AuthController(
 
         val token = jwtTokenProvider.generateToken(loginRequest.username)
         val user = userRepository.findByUsername(loginRequest.username)
-        val response = LoginResponse(token, loginRequest.username, user!!.id)
+        val userUpvotes: List<RoutePlanUpvote> = routePlanUpvoteRepository.findByUserId(user!!.id)
+        val upvotedRouteIds: List<Long> = userUpvotes.map { it.routePlan.id }
+        val response = LoginResponse(token, loginRequest.username, user.id, upvotedRouteIds)
         return ResponseEntity.ok(response)
     }
 }
