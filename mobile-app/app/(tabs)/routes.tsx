@@ -70,7 +70,7 @@ export default function RoutesPage() {
     setLoading(true);
     try {
       let query = "";
-      if (selectedSort) query += `sort=${selectedSort.toLowerCase()}&`;
+      if (selectedSort) query += `sortBy=${selectedSort.toLowerCase()}&`;
       if (selectedCity) query += `city=${selectedCity}&`;
       if (selectedCategory) query += `category=${selectedCategory}&`;
 
