@@ -25,4 +25,8 @@ data class RoutePlan(
 
     @Column(name = "userId")
     val userId: Long,
+
+    @Column(columnDefinition = "TEXT")
+    val images: String? = null
+
 )

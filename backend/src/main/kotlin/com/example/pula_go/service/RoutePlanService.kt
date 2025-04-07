@@ -7,6 +7,8 @@ import com.example.pula_go.repository.RouteCommentRepository
 import com.example.pula_go.repository.RoutePlanRepository
 import com.example.pula_go.repository.RoutePlanUpvoteRepository
 import com.example.pula_go.repository.UserRepository
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.stereotype.Service
 
 data class RoutePlanResponse(
@@ -18,7 +20,8 @@ data class RoutePlanResponse(
     val attractionIds: String,
     val upvotes: Int,
     val userId: Long,
-    val commentCount: Long
+    val commentCount: Long,
+    val images: List<String> = emptyList()
 )
 
 @Service
@@ -30,6 +33,26 @@ class RoutePlanService(
 ) {
 
     fun createRoutePlan(routePlan: RoutePlan): RoutePlan {
+        return routePlanRepository.save(routePlan)
+    }
+
+    fun createRouteWithImages(
+        name: String,
+        description: String,
+        imagesList: List<String>
+    ): RoutePlan {
+        val objectMapper = jacksonObjectMapper()
+        val imagesJson = objectMapper.writeValueAsString(imagesList)
+        val routePlan = RoutePlan(
+            name = name,
+            description = description,
+            category = "CULTURAL",
+            city = "Pula",
+            attractionIds = "1,2",
+            upvotes = 0,
+            userId = 1,
+            images = imagesJson
+        )
         return routePlanRepository.save(routePlan)
     }
 
@@ -52,7 +75,15 @@ class RoutePlanService(
             else -> routes.sortedByDescending { it.id }
         }
 
+        val objectMapper = jacksonObjectMapper()
+
         return sortedRoutes.map { route ->
+            val imagesJson = route.images ?: "[]"
+            val imagesList: List<String> = try {
+                objectMapper.readValue(imagesJson)
+            } catch (e: Exception) {
+                emptyList()
+            }
             val commentCount = routeCommentRepository.countByRoutePlanId(route.id)
             RoutePlanResponse(
                 id = route.id,
@@ -63,7 +94,8 @@ class RoutePlanService(
                 attractionIds = route.attractionIds,
                 upvotes = route.upvotes,
                 userId = route.userId,
-                commentCount = commentCount
+                commentCount = commentCount,
+                images = imagesList
             )
         }
     }

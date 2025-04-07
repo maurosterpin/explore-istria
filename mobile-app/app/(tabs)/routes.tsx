@@ -12,6 +12,7 @@ import {
   TextInput,
   ScrollView,
   Switch,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { baseApiUrl } from "@/constants/Api";
@@ -30,6 +31,7 @@ type RoutePlan = {
   commentCount: number;
   attractionIds: string;
   userId: number;
+  images: string[];
 };
 
 type RouteComment = {
@@ -273,6 +275,18 @@ export default function RoutesPage() {
             .join(", ")}
         </Text>
         <Text style={styles.cardDescription}>{item.description}</Text>
+
+        {item.images && item.images.length > 0 && (
+          <ScrollView horizontal style={styles.imagesContainer}>
+            {item.images.map((imgUrl, index) => (
+              <Image
+                key={index}
+                source={{ uri: imgUrl }}
+                style={styles.routeImage}
+              />
+            ))}
+          </ScrollView>
+        )}
 
         <View style={styles.cardActions}>
           <TouchableOpacity
@@ -629,5 +643,16 @@ const styles = StyleSheet.create({
   tabButtonTextActive: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  imagesContainer: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  routeImage: {
+    width: 120,
+    height: 90,
+    marginRight: 8,
+    borderRadius: 6,
+    resizeMode: "cover",
   },
 });
