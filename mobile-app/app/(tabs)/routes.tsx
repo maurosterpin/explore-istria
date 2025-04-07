@@ -13,6 +13,7 @@ import {
   ScrollView,
   Switch,
   Image,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { baseApiUrl } from "@/constants/Api";
@@ -67,6 +68,10 @@ export default function RoutesPage() {
   const [selectedRoute, setSelectedRoute] = useState<RoutePlan | null>(null);
   const [comments, setComments] = useState<RouteComment[]>([]);
   const [newComment, setNewComment] = useState("");
+
+  const [fullScreenVisible, setFullScreenVisible] = useState(false);
+  const [fullScreenImages, setFullScreenImages] = useState<string[]>([]);
+  const [initialImageIndex, setInitialImageIndex] = useState<number>(0);
 
   const fetchRoutes = async () => {
     setLoading(true);
@@ -215,6 +220,12 @@ export default function RoutesPage() {
     }
   };
 
+  function openFullScreenImages(images: string[], index: number) {
+    setFullScreenImages(images);
+    setInitialImageIndex(index);
+    setFullScreenVisible(true);
+  }
+
   const postComment = async () => {
     if (!userId) {
       Alert.alert("Login Required", "You must be logged in to comment.");
@@ -279,11 +290,12 @@ export default function RoutesPage() {
         {item.images && item.images.length > 0 && (
           <ScrollView horizontal style={styles.imagesContainer}>
             {item.images.map((imgUrl, index) => (
-              <Image
+              <TouchableOpacity
                 key={index}
-                source={{ uri: imgUrl }}
-                style={styles.routeImage}
-              />
+                onPress={() => openFullScreenImages(item.images!, index)}
+              >
+                <Image source={{ uri: imgUrl }} style={styles.routeImage} />
+              </TouchableOpacity>
             ))}
           </ScrollView>
         )}
@@ -418,6 +430,40 @@ export default function RoutesPage() {
         />
       )}
 
+      {fullScreenVisible && (
+        <Modal
+          transparent={false}
+          animationType="slide"
+          onRequestClose={() => setFullScreenVisible(false)}
+        >
+          <View style={styles.fullScreenContainer}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setFullScreenVisible(false)}
+            >
+              <Ionicons name="close" size={28} color="#fff" />
+            </TouchableOpacity>
+
+            <ScrollView
+              horizontal
+              pagingEnabled
+              style={{ flex: 1 }}
+              contentOffset={{ x: initialImageIndex * 300, y: 0 }}
+            >
+              {fullScreenImages.map((imgUrl, i) => (
+                <View key={i} style={styles.imagePage}>
+                  <Image
+                    source={{ uri: imgUrl }}
+                    style={styles.fullScreenImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </Modal>
+      )}
+
       {showCommentsModal && selectedRoute && (
         <Modal
           visible={showCommentsModal}
@@ -470,6 +516,8 @@ export default function RoutesPage() {
     </SafeAreaView>
   );
 }
+
+const SCREEN_WIDTH = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
   container: {
@@ -654,5 +702,31 @@ const styles = StyleSheet.create({
     marginRight: 8,
     borderRadius: 6,
     resizeMode: "cover",
+  },
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: "#000",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  closeButton: {
+    position: "absolute",
+    top: 40,
+    right: 20,
+    zIndex: 2,
+  },
+  closeButtonText: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  imagePage: {
+    width: SCREEN_WIDTH,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullScreenImage: {
+    width: SCREEN_WIDTH,
+    height: "100%",
   },
 });
