@@ -11,6 +11,7 @@ import {
   Modal,
   TextInput,
   ScrollView,
+  Switch,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { baseApiUrl } from "@/constants/Api";
@@ -54,6 +55,7 @@ export default function RoutesPage() {
   const [selectedSort, setSelectedSort] = useState("Latest");
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("official");
 
   const router = useRouter();
   const store = useStore();
@@ -344,6 +346,42 @@ export default function RoutesPage() {
         </View>
       </View>
 
+      <View style={styles.tabRow}>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === "official" && styles.tabButtonActive,
+          ]}
+          onPress={() => setActiveTab("official")}
+        >
+          <Text
+            style={[
+              styles.tabButtonText,
+              activeTab === "official" && styles.tabButtonTextActive,
+            ]}
+          >
+            Official Routes
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === "user" && styles.tabButtonActive,
+          ]}
+          onPress={() => setActiveTab("user")}
+        >
+          <Text
+            style={[
+              styles.tabButtonText,
+              activeTab === "user" && styles.tabButtonTextActive,
+            ]}
+          >
+            User Routes
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {loading && routes.length < 1 ? (
         <ActivityIndicator
           style={{ marginTop: 20 }}
@@ -556,5 +594,29 @@ const styles = StyleSheet.create({
   postButtonText: {
     color: "#fff",
     fontSize: 16,
+  },
+  tabRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 11,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: "#eee",
+    marginHorizontal: 4,
+    alignItems: "center",
+  },
+  tabButtonActive: {
+    backgroundColor: "#1158f1",
+  },
+  tabButtonText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  tabButtonTextActive: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
