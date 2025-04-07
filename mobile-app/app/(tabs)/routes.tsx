@@ -263,7 +263,14 @@ export default function RoutesPage() {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{item.name}</Text>
         <Text style={styles.cardMeta}>
-          {item.city} • {item.category}
+          {item.city} •{" "}
+          {item.category
+            .split(",")
+            .map(
+              (word) =>
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            )
+            .join(", ")}
         </Text>
         <Text style={styles.cardDescription}>{item.description}</Text>
 
@@ -476,6 +483,7 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 10,
+    paddingTop: 0,
   },
   card: {
     backgroundColor: "#f2f2f2",
@@ -598,7 +606,10 @@ const styles = StyleSheet.create({
   tabRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 11,
+    marginTop: 10,
+    marginBottom: 10,
+    marginLeft: 6,
+    marginRight: 6,
   },
   tabButton: {
     flex: 1,

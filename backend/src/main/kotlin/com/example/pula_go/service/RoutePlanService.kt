@@ -41,7 +41,7 @@ class RoutePlanService(
         var routes = routePlanRepository.findAll()
 
         category?.let { cat ->
-            routes = routes.filter { it.category?.equals(cat, ignoreCase = true) == true }
+            routes = routes.filter { it.category?.contains(cat, ignoreCase = true) == true }
         }
         city?.let { ct ->
             routes = routes.filter { it.city?.equals(ct, ignoreCase = true) == true }
