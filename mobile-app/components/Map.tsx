@@ -8,6 +8,9 @@ import {
   Animated,
   Alert,
   TouchableOpacity,
+  Modal,
+  ScrollView,
+  TextInput,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import polyline from "@mapbox/polyline";
@@ -36,6 +39,13 @@ const Map = () => {
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [travelMode, setTravelMode] = useState("foot-walking");
+
+  const [postModalVisible, setPostModalVisible] = useState(false);
+
+  const [routeTitle, setRouteTitle] = useState("");
+  const [routeDescription, setRouteDescription] = useState("");
+  const [imageUrlInput, setImageUrlInput] = useState("");
+  const [images, setImages] = useState<string[]>([]);
 
   const watchLocSub = useRef<any>(null);
   const watchHeadSub = useRef<any>(null);
@@ -229,6 +239,48 @@ const Map = () => {
     }
   };
 
+  async function postRoute() {
+    try {
+      const routeData = {
+        name: routeTitle,
+        description: routeDescription,
+        images: images,
+      };
+
+      const response = await fetch("YOUR_BACKEND_URL/routes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(routeData),
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        Alert.alert("Error", errData.message || "Failed to post route");
+        return;
+      }
+      const createdRoute = await response.json();
+      Alert.alert("Success", "Route posted successfully!");
+      setPostModalVisible(false);
+      setRouteTitle("");
+      setRouteDescription("");
+      setImages([]);
+    } catch (error) {
+      console.error("postRoute error:", error);
+      Alert.alert("Error", "An error occurred while posting the route.");
+    }
+  }
+
+  // function to add an image URL to the array
+  const handleAddImage = () => {
+    if (imageUrlInput.trim().length > 0) {
+      setImages((prev) => [...prev, imageUrlInput.trim()]);
+      setImageUrlInput("");
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   // if (selectedAttractions.length < 1) {
   //   return (
   //     <View style={styles.loadingContainer}>
@@ -323,6 +375,103 @@ const Map = () => {
           />
         </View>
       )}
+
+      <View style={styles.postButtonContainer}>
+        <TouchableOpacity
+          style={styles.postButton}
+          onPress={() => setPostModalVisible(true)}
+        >
+          <MaterialCommunityIcons
+            name="post-outline"
+            size={28}
+            color="#fff"
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+      </View>
+
+      <Modal
+        visible={postModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setPostModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              style={styles.closeModalButton}
+              onPress={() => setPostModalVisible(false)}
+            >
+              <MaterialCommunityIcons name="close" size={28} color="#333" />
+            </TouchableOpacity>
+
+            <Text style={styles.modalTitle}>Create a New Route</Text>
+
+            <ScrollView style={{ flex: 1 }}>
+              <Text style={styles.inputLabel}>Route Title</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter a route title"
+                value={routeTitle}
+                onChangeText={setRouteTitle}
+              />
+
+              <Text style={styles.inputLabel}>Route Description</Text>
+              <TextInput
+                style={styles.inputTextArea}
+                placeholder="Describe this route"
+                value={routeDescription}
+                onChangeText={setRouteDescription}
+                multiline={true}
+                numberOfLines={4}
+              />
+
+              <Text style={styles.inputLabel}>Add Image URL</Text>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <TextInput
+                  style={[styles.input, { flex: 1, marginRight: 8 }]}
+                  placeholder="https://example.com/image.jpg"
+                  value={imageUrlInput}
+                  onChangeText={setImageUrlInput}
+                />
+                <TouchableOpacity
+                  style={styles.addImageButton}
+                  onPress={handleAddImage}
+                >
+                  <Text style={{ color: "#fff" }}>Add</Text>
+                </TouchableOpacity>
+              </View>
+
+              {images && images.length > 0 && (
+                <ScrollView horizontal style={styles.imagesContainer}>
+                  {images.map((imgUrl, index) => (
+                    <View key={index} style={styles.imageWrapper}>
+                      <Image
+                        source={{ uri: imgUrl }}
+                        style={styles.routeImage}
+                      />
+                      <TouchableOpacity
+                        style={styles.removeIconContainer}
+                        onPress={() => removeImage(index)}
+                      >
+                        <MaterialCommunityIcons
+                          name="close-circle"
+                          size={20}
+                          color="red"
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </ScrollView>
+              )}
+            </ScrollView>
+
+            <TouchableOpacity style={styles.submitButton} onPress={postRoute}>
+              <Text style={styles.submitButtonText}>Submit Route</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <Animated.View
         style={[styles.sidePanel, { transform: [{ translateX: panelAnim }] }]}
@@ -420,6 +569,10 @@ const styles = StyleSheet.create({
   iconButton: {
     marginVertical: 6,
   },
+  imageWrapper: {
+    position: "relative",
+    marginRight: 8,
+  },
   buttonContainer: {
     position: "absolute",
     bottom: 40,
@@ -440,6 +593,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: -2, height: 0 },
     shadowRadius: 5,
   },
+  routeImage: {
+    width: 120,
+    height: 90,
+    marginRight: 8,
+    borderRadius: 6,
+    resizeMode: "cover",
+  },
   closeButton: {
     alignSelf: "flex-end",
     padding: 10,
@@ -448,6 +608,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
     color: "blue",
+  },
+  removeIconContainer: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: "rgba(255,255,255,0.7)",
+    borderRadius: 10,
   },
   infoContainer: {
     padding: 16,
@@ -458,10 +625,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 8,
   },
+  icon: {
+    alignSelf: "center",
+  },
   rating: {
     fontWeight: "bold",
     fontSize: 14,
     marginTop: 8,
+  },
+  imagesContainer: {
+    marginTop: 8,
+    marginBottom: 8,
   },
   image: {
     width: "100%",
@@ -489,6 +663,94 @@ const styles = StyleSheet.create({
   // description: {
   //   marginVertical: 8,
   // },
+  postRouteIconContainer: {
+    position: "absolute",
+    top: 60,
+    right: 10,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    borderRadius: 8,
+    padding: 8,
+    zIndex: 999,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "85%",
+    height: "85%",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+  },
+  closeModalButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  inputLabel: {
+    fontWeight: "600",
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  input: {
+    backgroundColor: "#f2f2f2",
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  inputTextArea: {
+    backgroundColor: "#f2f2f2",
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  addImageButton: {
+    backgroundColor: "#118cf1",
+    borderRadius: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  submitButton: {
+    backgroundColor: "#118cf1",
+    borderRadius: 6,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginTop: 16,
+  },
+  submitButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  postButtonContainer: {
+    position: "absolute",
+    top: 60,
+    right: 10,
+    zIndex: 999,
+  },
+  postButton: {
+    backgroundColor: "#2a8fe2",
+    borderRadius: 5,
+    padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
 });
 
 export default Map;
