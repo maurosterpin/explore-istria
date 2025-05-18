@@ -32,7 +32,7 @@ const Map = () => {
     null
   );
   const [useMyLocation, setUseMyLocation] = useState<any>(false);
-  const { selectedAttractions, username } = useStore();
+  const { selectedAttractions, username, userId } = useStore();
   const [userLocation, setUserLocation] =
     useState<Location.LocationObjectCoords | null>(null);
   const [heading, setHeading] = useState<number>(0);
@@ -46,6 +46,9 @@ const Map = () => {
   const [routeDescription, setRouteDescription] = useState("");
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [images, setImages] = useState<string[]>([]);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [currentAttractionToRate, setCurrentAttractionToRate] =
+    useState<Attraction | null>(null);
 
   const watchLocSub = useRef<any>(null);
   const watchHeadSub = useRef<any>(null);
@@ -376,19 +379,26 @@ const Map = () => {
         </View>
       )}
 
-      <View style={styles.postButtonContainer}>
+      {/* <View style={styles.postButtonContainer}>
         <TouchableOpacity
           style={styles.postButton}
-          onPress={() => setPostModalVisible(true)}
+          onPress={() => {
+            if (!userId) {
+              Alert.alert(
+                "Login Required",
+                "You must be logged in to share a route."
+              );
+            } else setPostModalVisible(true);
+          }}
         >
           <MaterialCommunityIcons
-            name="post-outline"
+            name="share"
             size={28}
             color="#fff"
             style={styles.icon}
           />
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       <Modal
         visible={postModalVisible}
@@ -402,10 +412,10 @@ const Map = () => {
               style={styles.closeModalButton}
               onPress={() => setPostModalVisible(false)}
             >
-              <MaterialCommunityIcons name="close" size={28} color="#333" />
+              <MaterialCommunityIcons on name="close" size={28} color="#333" />
             </TouchableOpacity>
 
-            <Text style={styles.modalTitle}>Create a New Route</Text>
+            <Text style={styles.modalTitle}>Share current Route</Text>
 
             <ScrollView style={{ flex: 1 }}>
               <Text style={styles.inputLabel}>Route Title</Text>
@@ -467,7 +477,7 @@ const Map = () => {
             </ScrollView>
 
             <TouchableOpacity style={styles.submitButton} onPress={postRoute}>
-              <Text style={styles.submitButtonText}>Submit Route</Text>
+              <Text style={styles.submitButtonText}>Share Route</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -490,26 +500,29 @@ const Map = () => {
             <Text style={styles.description}>
               {selectedAttraction.description}
             </Text>
-            {/* {selectedAttraction.price && (
+            {selectedAttraction?.price && (
               <Text style={styles.rating}>
-                Price: {selectedAttraction.price}€
+                Price: {`${selectedAttraction?.price}`}€
               </Text>
-            )} */}
-            {username && (
+            )}
+            {
               <>
-                <Text style={styles.rating}>Rate attraction:</Text>
+                <Text style={styles.rating}>Rating:</Text>
                 <Rating
                   type="star"
                   ratingCount={5}
                   imageSize={30}
-                  startingValue={selectedAttraction.rating || 0}
-                  onFinishRating={(rating: any) => {
-                    handleRating(selectedAttraction.id, rating);
-                  }}
+                  startingValue={selectedAttraction.rating || 5}
                   style={{ paddingVertical: 10, alignSelf: "flex-start" }}
                 />
               </>
-            )}
+            }
+            <TouchableOpacity
+              onPress={() => setShowRatingModal(true)}
+              style={[styles.rateButton, { marginTop: 12 }]}
+            >
+              <Text style={styles.rateButtonText}>Rate this attraction</Text>
+            </TouchableOpacity>
           </View>
         )}
       </Animated.View>
@@ -592,6 +605,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowOffset: { width: -2, height: 0 },
     shadowRadius: 5,
+    zIndex: 1000,
   },
   routeImage: {
     width: 120,
@@ -689,6 +703,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     right: 10,
+    zIndex: 2000,
   },
   modalTitle: {
     fontSize: 20,
@@ -722,6 +737,20 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingVertical: 10,
     paddingHorizontal: 16,
+  },
+  rateButton: {
+    borderColor: "#118cf1",
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    alignSelf: "flex-start",
+    marginTop: 8,
+  },
+  rateButtonText: {
+    color: "#118cf1",
+    fontSize: 14,
+    fontWeight: "500",
   },
   submitButton: {
     backgroundColor: "#118cf1",

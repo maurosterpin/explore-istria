@@ -1,6 +1,6 @@
 import * as React from "react";
 import { View, StyleSheet } from "react-native";
-import { Card, Text, Button, Chip } from "react-native-paper";
+import { Card, Text, Button, Chip, IconButton } from "react-native-paper";
 
 export default function AttractionCard({
   title,
@@ -12,11 +12,17 @@ export default function AttractionCard({
   city,
   rating,
   price,
+  isEditable,
 }: any) {
   return (
     <Card style={styles.card}>
       <Card.Cover source={{ uri: image }} style={styles.cover} />
-      <Card.Title title={title} />
+      <Card.Title
+        title={title}
+        {...(isEditable
+          ? { right: () => <IconButton icon="pencil" onPress={() => {}} /> }
+          : {})}
+      />
       <Card.Content>
         <Text style={styles.description}>{description}</Text>
         <View style={styles.labelsRow}>

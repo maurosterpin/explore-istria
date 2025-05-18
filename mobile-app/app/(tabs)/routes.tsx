@@ -21,6 +21,8 @@ import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { useStore } from "../store/AttractionStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Rating } from "react-native-ratings";
+import { Card, IconButton } from "react-native-paper";
 
 type RoutePlan = {
   id: number;
@@ -120,7 +122,7 @@ export default function RoutesPage() {
 
   const handleUpvote = async (routeItem: RoutePlan) => {
     if (!userId) {
-      Alert.alert("Login Required", "You must be logged in to upvote a route.");
+      Alert.alert("Login Required", "You must be signed in to upvote a route.");
       return;
     }
     const token = await AsyncStorage.getItem("jwtToken");
@@ -159,7 +161,7 @@ export default function RoutesPage() {
 
   async function handleUnvote(routeItem: RoutePlan) {
     if (!userId) {
-      Alert.alert("Login Required", "You must be logged in to unvote a route.");
+      Alert.alert("Login Required", "You must be signed in to unvote a route.");
       return;
     }
 
@@ -228,7 +230,7 @@ export default function RoutesPage() {
 
   const postComment = async () => {
     if (!userId) {
-      Alert.alert("Login Required", "You must be logged in to comment.");
+      Alert.alert("Login Required", "You must be signed in to comment.");
       return;
     }
     if (!selectedRoute) return;
@@ -273,8 +275,13 @@ export default function RoutesPage() {
   const renderRouteCard = ({ item }: { item: RoutePlan }) => {
     const isUpvoted = userUpvotedRoutes?.includes(item.id);
     return (
-      <View style={styles.card}>
+      <Card style={styles.card}>
         <Text style={styles.cardTitle}>{item.name}</Text>
+        <IconButton
+          style={{ position: "absolute", right: -10, top: -10 }}
+          icon="pencil"
+          onPress={() => {}}
+        />
         <Text style={styles.cardMeta}>
           {item.city} •{" "}
           {item.category
@@ -286,6 +293,12 @@ export default function RoutesPage() {
             .join(", ")}
         </Text>
         <Text style={styles.cardDescription}>{item.description}</Text>
+        <TouchableOpacity
+          style={styles.viewAttractionsButton}
+          onPress={() => {}}
+        >
+          <Text style={styles.viewAttractionsButtonText}>View Attractions</Text>
+        </TouchableOpacity>
 
         {item.images && item.images.length > 0 && (
           <ScrollView horizontal style={styles.imagesContainer}>
@@ -301,7 +314,7 @@ export default function RoutesPage() {
         )}
 
         <View style={styles.cardActions}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.actionButton}
             onPress={
               isUpvoted ? () => handleUnvote(item) : () => handleUpvote(item)
@@ -313,13 +326,13 @@ export default function RoutesPage() {
               color="#1158f1"
             />
             <Text style={styles.actionText}>{item.upvotes}</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => openComments(item)}
           >
-            <Ionicons name="chatbubble-outline" size={20} color="#1158f1" />
+            <Ionicons name="star-outline" size={20} color="#1158f1" />
             <Text style={styles.actionText}>{item.commentCount || 0}</Text>
           </TouchableOpacity>
 
@@ -330,7 +343,7 @@ export default function RoutesPage() {
             <Text style={styles.useRouteText}>Use Route</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </Card>
     );
   };
 
@@ -379,7 +392,7 @@ export default function RoutesPage() {
         </View>
       </View>
 
-      <View style={styles.tabRow}>
+      {/* <View style={styles.tabRow}>
         <TouchableOpacity
           style={[
             styles.tabButton,
@@ -413,7 +426,7 @@ export default function RoutesPage() {
             User Routes
           </Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       {loading && routes.length < 1 ? (
         <ActivityIndicator
@@ -476,7 +489,7 @@ export default function RoutesPage() {
               <View style={styles.handleBar} />
 
               <Text style={styles.modalTitle}>
-                {selectedRoute.name} Comments
+                {selectedRoute.name} Ratings
               </Text>
 
               <TouchableOpacity
@@ -489,24 +502,54 @@ export default function RoutesPage() {
               <ScrollView style={styles.commentsList}>
                 {comments.map((c) => (
                   <View key={c.id} style={styles.commentItem}>
-                    <Text style={styles.commentUsername}>{c.username}</Text>
+                    <Rating
+                      type="star"
+                      ratingCount={5}
+                      imageSize={20}
+                      startingValue={5}
+                      style={{
+                        paddingBottom: 5,
+                        alignSelf: "flex-start",
+                        backgroundColor: "transparent",
+                      }}
+                    />
+                    {/* <Text style={styles.commentUsername}>{c.username}</Text> */}
                     <Text style={styles.commentText}>{c.comment}</Text>
                   </View>
                 ))}
               </ScrollView>
 
               <View style={styles.addCommentContainer}>
-                <TextInput
-                  style={styles.commentInput}
-                  placeholder="Write a comment..."
-                  value={newComment}
-                  onChangeText={setNewComment}
-                />
+                <View
+                  style={{
+                    display: "flex",
+                    paddingRight: 7,
+                    width: "83%",
+                    paddingTop: 30,
+                  }}
+                >
+                  <Rating
+                    type="custom"
+                    ratingCount={5}
+                    imageSize={30}
+                    startingValue={0}
+                    style={{
+                      paddingBottom: 10,
+                      alignSelf: "flex-start",
+                    }}
+                  />
+                  <TextInput
+                    style={styles.commentInput}
+                    placeholder="Write a comment..."
+                    value={newComment}
+                    onChangeText={setNewComment}
+                  />
+                </View>
                 <TouchableOpacity
                   style={styles.postButton}
                   onPress={postComment}
                 >
-                  <Text style={styles.postButtonText}>Post</Text>
+                  <Text style={styles.postButtonText}>Rate</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -530,6 +573,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
+    marginBottom: 15,
   },
   filterRow: {
     flexDirection: "row",
@@ -548,7 +592,6 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   card: {
-    backgroundColor: "#f2f2f2",
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
@@ -596,7 +639,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalSheet: {
-    backgroundColor: "#fff",
+    backgroundColor: "white",
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     padding: 16,
@@ -622,15 +665,36 @@ const styles = StyleSheet.create({
     top: 16,
     right: 16,
   },
+  viewAttractionsButton: {
+    borderColor: "#118cf1",
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    alignSelf: "flex-start",
+    marginVertical: 5,
+  },
+  viewAttractionsButtonText: {
+    color: "#118cf1",
+    fontSize: 14,
+    fontWeight: "500",
+  },
   commentsList: {
     flex: 1,
     marginTop: 10,
   },
   commentItem: {
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#ffffff",
     padding: 10,
     borderRadius: 6,
     marginBottom: 8,
+    boxShadow: "black",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    margin: 5,
   },
   commentUsername: {
     fontWeight: "bold",
@@ -643,8 +707,7 @@ const styles = StyleSheet.create({
   },
   addCommentContainer: {
     flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
+    alignItems: "flex-end",
   },
   commentInput: {
     flex: 1,
@@ -654,6 +717,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     marginRight: 8,
+    minHeight: 40,
   },
   postButton: {
     backgroundColor: "#118cf1",

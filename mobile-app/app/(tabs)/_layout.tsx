@@ -30,15 +30,6 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Route",
-          tabBarIcon: ({ color }) => (
-            <FontAwesome6 name="route" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="generate-route"
         options={{
           title: "Generate Route",
@@ -47,17 +38,15 @@ export default function TabLayout() {
           ),
         }}
       />
-
       <Tabs.Screen
-        name="routes"
+        name="explore"
         options={{
-          title: "Explore Routes",
+          title: "Route",
           tabBarIcon: ({ color }) => (
-            <FontAwesome6 name="newspaper" size={24} color={color} />
+            <FontAwesome6 name="route" size={24} color={color} />
           ),
         }}
       />
-
       <Tabs.Screen
         name="index"
         options={{
@@ -68,6 +57,15 @@ export default function TabLayout() {
               size={24}
               color={color}
             />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="routes"
+        options={{
+          title: "Explore Routes",
+          tabBarIcon: ({ color }) => (
+            <FontAwesome6 name="newspaper" size={24} color={color} />
           ),
         }}
       />

@@ -23,10 +23,12 @@ export default function SignInScreen() {
     try {
       console.log("route", `${baseApiUrl}/public/login`);
       console.log("username", username, "password", password);
+      const body = JSON.stringify({ username, password });
+      console.log("making request", body);
       const response = await fetch(`${baseApiUrl}/public/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: body,
       });
       if (response.ok) {
         const data = await response.json();
@@ -76,11 +78,11 @@ export default function SignInScreen() {
             <Text style={styles.signInButtonText}>Sign In</Text>
           </TouchableOpacity>
 
-          <Link href="/register" asChild>
+          {/* <Link href="/register" asChild>
             <TouchableOpacity style={styles.registerButton}>
               <Text style={styles.registerButtonText}>Register</Text>
             </TouchableOpacity>
-          </Link>
+          </Link> */}
         </View>
       </LinearGradient>
     </>

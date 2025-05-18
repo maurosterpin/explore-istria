@@ -7,10 +7,12 @@ import {
   StyleSheet,
   Alert,
   Switch,
+  TextInput,
 } from "react-native";
 import MultiSelect from "react-native-multiple-select";
 import { useStore } from "../store/AttractionStore";
 import { useRouter } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const ALL_CATEGORIES = [
   { id: "HISTORICAL", name: "HISTORICAL" },
@@ -32,6 +34,11 @@ export default function RouteGeneratorScreen() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [findNearMe, setFindNearMe] = useState<boolean>(false);
+  const [duration, setDuration] = useState("");
+  const [budget, setBudget] = useState("");
+  const [transportMode, setTransportMode] = useState<
+    "foot-walking" | "driving-car" | "cycling-regular" | "wheelchair"
+  >("foot-walking");
   const [generatedRoute, setGeneratedRoute] = useState<any>(null);
   const store = useStore();
   const router = useRouter();
@@ -133,6 +140,48 @@ export default function RouteGeneratorScreen() {
         </>
       )}
 
+      <Text style={styles.label}>Duration (optional)</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="e.g. 2h 30m"
+        value={duration}
+        onChangeText={setDuration}
+      />
+
+      <Text style={styles.label}>Budget € (optional)</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="e.g. 25"
+        value={budget}
+        onChangeText={setBudget}
+        keyboardType="numeric"
+      />
+
+      <Text style={styles.label}>Mode of Transport</Text>
+      <View style={styles.transportIcons}>
+        {[
+          { name: "walk", mode: "foot-walking" },
+          { name: "car", mode: "driving-car" },
+          { name: "bike", mode: "cycling-regular" },
+          { name: "wheelchair-accessibility", mode: "wheelchair" },
+        ].map((item) => (
+          <TouchableOpacity
+            key={item.mode}
+            onPress={() => setTransportMode(item.mode as typeof transportMode)}
+            style={[
+              styles.iconButton,
+              transportMode === item.mode && styles.selectedIcon,
+            ]}
+          >
+            <MaterialCommunityIcons
+              name={item.name as any}
+              size={28}
+              color={transportMode === item.mode ? "#118cf1" : "#555"}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
+
       <TouchableOpacity
         style={styles.generateButton}
         onPress={handleGenerateRoute}
@@ -204,5 +253,25 @@ const styles = StyleSheet.create({
   resultItem: {
     fontSize: 14,
     marginBottom: 4,
+  },
+  input: {
+    backgroundColor: "#f2f2f2",
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+  },
+  transportIcons: {
+    flexDirection: "row",
+    marginTop: 8,
+  },
+  iconButton: {
+    padding: 10,
+    marginRight: 12,
+    borderRadius: 8,
+    backgroundColor: "#eee",
+  },
+  selectedIcon: {
+    backgroundColor: "#d0e8ff",
   },
 });

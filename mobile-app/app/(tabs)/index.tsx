@@ -15,6 +15,7 @@ import { Picker } from "@react-native-picker/picker";
 const AttractionsPage = () => {
   const [attractions, setAttractions] = useState<Attraction[]>([]);
   const {
+    userId,
     selectedAttractions,
     setSelectedAttractions,
     selectedCategory,
@@ -68,6 +69,7 @@ const AttractionsPage = () => {
       city={item.city}
       rating={item.rating}
       price={item.price}
+      isEditable={userId !== null}
     />
   );
 

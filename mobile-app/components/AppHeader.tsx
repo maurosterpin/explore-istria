@@ -46,12 +46,30 @@ const AppHeader: React.FC = () => {
           <Portal>
             {dropdownVisible && (
               <View style={styles.dropdown}>
+                {/* <Pressable
+                  style={styles.dropdownItem}
+                  onPress={() => handleOption("profile")}
+                >
+                  <Text style={styles.dropdownText}>Shared Routes</Text>
+                </Pressable> */}
                 <Pressable
                   style={styles.dropdownItem}
                   onPress={() => handleOption("profile")}
                 >
-                  <Text style={styles.dropdownText}>Profile</Text>
+                  <Text style={styles.dropdownText}>Add Attraction</Text>
                 </Pressable>
+                <Pressable
+                  style={styles.dropdownItem}
+                  onPress={() => handleOption("profile")}
+                >
+                  <Text style={styles.dropdownText}>Add Route</Text>
+                </Pressable>
+                {/* <Pressable
+                  style={styles.dropdownItem}
+                  onPress={() => handleOption("profile")}
+                >
+                  <Text style={styles.dropdownText}>User Management</Text>
+                </Pressable> */}
                 <Pressable
                   style={styles.dropdownItem}
                   onPress={() => handleOption("signOut")}
@@ -86,6 +104,7 @@ const styles = StyleSheet.create({
   signIn: {
     color: "#fff",
     fontSize: 16,
+    opacity: 0,
   },
   userContainer: {
     position: "relative",
@@ -96,7 +115,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 100,
     right: 10,
-    width: 120,
+    width: 170,
     backgroundColor: "#fff",
     borderRadius: 4,
     elevation: 4,

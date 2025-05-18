@@ -47,7 +47,7 @@ export default function RootLayout() {
               headerTitleStyle: {
                 fontWeight: "bold",
               },
-              title: "Explore Pula",
+              title: "Explore Istria",
               headerRight: () => <AppHeader />,
             }}
           >
