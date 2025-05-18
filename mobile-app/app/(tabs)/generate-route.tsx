@@ -188,17 +188,6 @@ export default function RouteGeneratorScreen() {
       >
         <Text style={styles.buttonText}>Generate Route</Text>
       </TouchableOpacity>
-
-      {/* {generatedRoute && (
-        <View style={styles.resultsContainer}>
-          <Text style={styles.resultTitle}>Generated Route:</Text>
-          {generatedRoute.map((attraction: any) => (
-            <Text key={attraction.id} style={styles.resultItem}>
-              {attraction.name} – {attraction.city} ({attraction.category})
-            </Text>
-          ))}
-        </View>
-      )} */}
     </View>
   );
 }
