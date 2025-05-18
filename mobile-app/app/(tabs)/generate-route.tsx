@@ -14,7 +14,7 @@ import { useStore } from "../store/AttractionStore";
 import { useRouter } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const ALL_CATEGORIES = [
+export const ALL_CATEGORIES = [
   { id: "HISTORICAL", name: "HISTORICAL" },
   { id: "CULTURAL", name: "CULTURAL" },
   { id: "NATURAL", name: "NATURAL" },
@@ -22,7 +22,7 @@ const ALL_CATEGORIES = [
   { id: "CULINARY", name: "CULINARY" },
 ];
 
-const ALL_CITIES = [
+export const ALL_CITIES = [
   { id: "Pula", name: "Pula" },
   { id: "Rovinj", name: "Rovinj" },
   { id: "Poreč", name: "Poreč" },

@@ -15,6 +15,12 @@ type GlobalStore = {
   setUserId: (value: number | null) => void;
   userUpvotedRoutes: number[] | null;
   setUserUpvotedRoutes: (value: number[] | null) => void;
+  openModal: boolean;
+  setOpenModal: (value: boolean) => void;
+  modalState: "Edit" | "Add";
+  setModalState: (value: "Edit" | "Add") => void;
+  modalType: "Attraction" | "Route";
+  setModalType: (value: "Attraction" | "Route") => void;
 };
 
 const StoreContext = createContext<GlobalStore | undefined>(undefined);
@@ -30,6 +36,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [username, setUsername] = useState<string | null>(null);
   const [userUpvotedRoutes, setUserUpvotedRoutes] = useState<number[] | null>(
     null
+  );
+  const [openModal, setOpenModal] = useState<boolean>(true);
+  const [modalState, setModalState] = useState<"Edit" | "Add">("Add");
+  const [modalType, setModalType] = useState<"Attraction" | "Route">(
+    "Attraction"
   );
 
   const value: GlobalStore = {
@@ -47,6 +58,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setUserId,
     userUpvotedRoutes,
     setUserUpvotedRoutes,
+    openModal,
+    setOpenModal,
+    modalState,
+    setModalState,
+    modalType,
+    setModalType,
   };
 
   return (

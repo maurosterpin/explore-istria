@@ -14,6 +14,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { StoreProvider } from "./store/AttractionStore";
 import AppHeader from "@/components/AppHeader";
 import { Provider } from "react-native-paper";
+import EditModal from "@/components/EditModal";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -38,6 +39,7 @@ export default function RootLayout() {
     <StoreProvider>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Provider>
+          <EditModal />
           <Stack
             screenOptions={{
               headerStyle: {
