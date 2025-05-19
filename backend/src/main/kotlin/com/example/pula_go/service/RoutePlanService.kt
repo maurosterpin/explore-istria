@@ -1,8 +1,7 @@
 package com.example.pula_go.service
 
 import com.example.pula_go.model.RoutePlan
-import com.example.pula_go.model.RoutePlanUpvote
-import com.example.pula_go.model.User
+import com.example.pula_go.model.RoutePlanRating
 import com.example.pula_go.repository.RouteCommentRepository
 import com.example.pula_go.repository.RoutePlanRepository
 import com.example.pula_go.repository.RoutePlanUpvoteRepository
@@ -109,7 +108,7 @@ class RoutePlanService(
         if (existingVote != null) {
             throw IllegalArgumentException("User has already upvoted this route")
         }
-        val vote = RoutePlanUpvote(
+        val vote = RoutePlanRating(
             routePlan = routePlan,
             userId = userId
         )

@@ -27,8 +27,8 @@ class SecurityConfig(
 
         http.authorizeHttpRequests { authz ->
             authz
-                .requestMatchers("/public/**").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/admin/**").authenticated()
+                .anyRequest().permitAll()
         }
 
         http.sessionManagement { session ->

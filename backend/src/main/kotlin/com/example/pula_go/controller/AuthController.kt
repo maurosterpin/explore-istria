@@ -1,7 +1,6 @@
 package com.example.pula_go.controller
 
-import com.example.pula_go.model.RoutePlan
-import com.example.pula_go.model.RoutePlanUpvote
+import com.example.pula_go.model.RoutePlanRating
 import com.example.pula_go.model.User
 import com.example.pula_go.repository.RoutePlanUpvoteRepository
 import com.example.pula_go.repository.UserRepository
@@ -32,7 +31,6 @@ data class LoginResponse(
 )
 
 @RestController
-@RequestMapping("/public")
 class AuthController(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
@@ -62,7 +60,7 @@ class AuthController(
 
         val token = jwtTokenProvider.generateToken(loginRequest.username)
         val user = userRepository.findByUsername(loginRequest.username)
-        val userUpvotes: List<RoutePlanUpvote> = routePlanUpvoteRepository.findByUserId(user!!.id)
+        val userUpvotes: List<RoutePlanRating> = routePlanUpvoteRepository.findByUserId(user!!.id)
         val upvotedRouteIds: List<Long> = userUpvotes.map { it.routePlan.id }
         val response = LoginResponse(token, loginRequest.username, user.id, upvotedRouteIds)
         return ResponseEntity.ok(response)

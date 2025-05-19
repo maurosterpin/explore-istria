@@ -8,7 +8,7 @@ import jakarta.persistence.*
     name = "route_plan_upvote",
     uniqueConstraints = [UniqueConstraint(columnNames = ["route_plan_id", "username"])]
 )
-data class RoutePlanUpvote(
+data class RoutePlanRating(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,

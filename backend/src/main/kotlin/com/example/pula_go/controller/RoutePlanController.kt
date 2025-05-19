@@ -6,7 +6,7 @@ import com.example.pula_go.service.RoutePlanService
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/public/routes")
+@RequestMapping("/routes")
 class RoutePlanController(
     private val routePlanService: RoutePlanService
 ) {

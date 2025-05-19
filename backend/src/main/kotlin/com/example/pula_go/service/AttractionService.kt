@@ -12,7 +12,6 @@ class AttractionService(
 ) {
 
     fun fetchAndSaveAttractions(): List<Attraction> {
-        attractionRepository.truncateTable()
         val attractions = googlePlacesService.fetchAllAttractions()
         return attractionRepository.saveAll(attractions)
     }

@@ -2,9 +2,8 @@ package com.example.pula_go.controller
 
 import com.example.pula_go.model.RouteComment
 import com.example.pula_go.model.RoutePlan
-import com.example.pula_go.model.RoutePlanUpvote
+import com.example.pula_go.model.RoutePlanRating
 import com.example.pula_go.repository.RoutePlanUpvoteRepository
-import com.example.pula_go.repository.UserRepository
 import com.example.pula_go.service.RouteCommentService
 import com.example.pula_go.service.RoutePlanService
 import org.springframework.web.bind.annotation.*
@@ -39,7 +38,7 @@ class RouteCommentController(
         return routeCommentService.addComment(routePlanId, request.userId, request.username, request.comment)
     }
 
-    @GetMapping("/public/routes/comment/{routePlanId}")
+    @GetMapping("/routes/comment/{routePlanId}")
     fun getComments(@PathVariable routePlanId: Long): List<RouteComment> {
         return routeCommentService.getComments(routePlanId)
     }
@@ -47,7 +46,7 @@ class RouteCommentController(
     @PostMapping("/routes/upvote/{routePlanId}")
     fun upvoteRoutePlan(@PathVariable routePlanId: Long, @RequestBody request: UpvoteRequest): UpvoteResponse? {
         val routePlan = routePlanService.upvoteRoutePlan(routePlanId, request.userId)
-        val userUpvotes: List<RoutePlanUpvote> = routePlanUpvoteRepository.findByUserId(request.userId)
+        val userUpvotes: List<RoutePlanRating> = routePlanUpvoteRepository.findByUserId(request.userId)
         val upvotedRouteIds: List<Long> = userUpvotes.map { it.routePlan.id }
         return UpvoteResponse(routePlan, upvotedRouteIds)
     }
@@ -55,7 +54,7 @@ class RouteCommentController(
     @PostMapping("/routes/unvote/{routePlanId}")
     fun unvoteRoutePlan(@PathVariable routePlanId: Long, @RequestBody request: UpvoteRequest): UpvoteResponse? {
         val routePlan = routePlanService.unvoteRoutePlan(routePlanId, request.userId)
-        val userUpvotes: List<RoutePlanUpvote> = routePlanUpvoteRepository.findByUserId(request.userId)
+        val userUpvotes: List<RoutePlanRating> = routePlanUpvoteRepository.findByUserId(request.userId)
         val upvotedRouteIds: List<Long> = userUpvotes.map { it.routePlan.id }
         return UpvoteResponse(routePlan, upvotedRouteIds)
     }

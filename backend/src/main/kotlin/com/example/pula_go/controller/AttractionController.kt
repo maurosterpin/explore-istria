@@ -22,7 +22,7 @@ class AttractionController(
 //        return attractionService.fetchAndSaveAttractions()
 //    }
 
-    @GetMapping("/public/get")
+    @GetMapping("/get")
     fun getAttractions(
         @RequestParam(required = false) category: Category?,
         @RequestParam(required = false) city: String?,
@@ -30,12 +30,12 @@ class AttractionController(
         return attractionService.getAllAttractions(category, city)
     }
 
-    @PostMapping("/public/route")
+    @PostMapping("/route")
     fun getRoute(@RequestBody attractions: List<Attraction>): List<Attraction> {
         return routeGenerator.generateRoute(attractions)
     }
 
-    @PutMapping("/update")
+    @PutMapping("/admin/update")
     fun updateAttractions(@RequestBody attractions: List<Attraction>): List<Attraction> {
         return attractionService.updateExistingAttractions(attractions)
     }
@@ -45,19 +45,19 @@ class AttractionController(
         return ResponseEntity.ok("Success")
     }
 
-    @PostMapping("/public/generate")
+    @PostMapping("/generate")
     fun generateWithPrefs(@RequestBody prefs: RoutePreferences): List<Attraction> {
         val allAttractions = attractionService.getAllAttractions()
         return routeGenerator.generateRouteWithPreferences(allAttractions, prefs)
     }
 
-    @PostMapping("/public/use")
+    @PostMapping("/use")
     fun useRoute(@RequestBody attractionIds: String): List<Attraction> {
         val attractions = attractionService.useRoute(attractionIds)
         return attractions
     }
 
-    @DeleteMapping("/delete/{attractionId}")
+    @DeleteMapping("/admin/delete/{attractionId}")
     fun deleteAttraction(@PathVariable attractionId: Long) {
         return attractionService.deleteAttraction(attractionId)
     }
