@@ -83,7 +83,7 @@ export default function RoutesPage() {
       if (selectedCity) query += `city=${selectedCity}&`;
       if (selectedCategory) query += `category=${selectedCategory}&`;
 
-      const response = await fetch(`${baseApiUrl}/public/routes?${query}`);
+      const response = await fetch(`${baseApiUrl}/routes?${query}`);
       const data = await response.json();
       console.log("fetched routes:", data);
       setRoutes(data);
@@ -101,7 +101,7 @@ export default function RoutesPage() {
   const useRoute = async (attractionIds: string) => {
     console.log("Using route with attractionIds:", attractionIds);
     try {
-      const response = await fetch(`${baseApiUrl}/public/use`, {
+      const response = await fetch(`${baseApiUrl}/use`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ attractionIds }),
@@ -211,7 +211,7 @@ export default function RoutesPage() {
 
     try {
       const response = await fetch(
-        `${baseApiUrl}/public/routes/comment/${routeItem.id}`
+        `${baseApiUrl}/routes/comment/${routeItem.id}`
       );
       if (response.ok) {
         const data = await response.json();

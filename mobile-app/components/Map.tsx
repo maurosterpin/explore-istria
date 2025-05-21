@@ -32,7 +32,7 @@ const Map = () => {
     null
   );
   const [useMyLocation, setUseMyLocation] = useState<any>(false);
-  const { selectedAttractions, username, userId } = useStore();
+  const { selectedAttractions } = useStore();
   const [userLocation, setUserLocation] =
     useState<Location.LocationObjectCoords | null>(null);
   const [heading, setHeading] = useState<number>(0);
@@ -129,7 +129,7 @@ const Map = () => {
   const fetchRoute = useCallback(
     async (locations?: any) => {
       try {
-        const response = await fetch(`${baseApiUrl}/public/route`, {
+        const response = await fetch(`${baseApiUrl}/route`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

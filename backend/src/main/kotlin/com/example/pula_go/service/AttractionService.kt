@@ -16,6 +16,10 @@ class AttractionService(
         return attractionRepository.saveAll(attractions)
     }
 
+    fun addAttraction(attraction: Attraction): Attraction {
+        return attractionRepository.save(attraction)
+    }
+
     fun updateExistingAttractions(newAttractions: List<Attraction>): List<Attraction> {
         val updatedAttractions = mutableListOf<Attraction>()
         newAttractions.forEach { attraction ->
@@ -27,7 +31,8 @@ class AttractionService(
         return updatedAttractions
     }
 
-    fun getAllAttractions(category: Category?, city: String?): List<Attraction?>? = attractionRepository.findAllByCustomParams(category, city)
+    fun getAllAttractions(category: Category?, city: String?): List<Attraction?>? =
+        attractionRepository.findAllByCustomParams(category, city)
 
     fun getAllAttractions(): List<Attraction> = attractionRepository.findAll()
 

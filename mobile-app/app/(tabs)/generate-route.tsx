@@ -66,7 +66,7 @@ export default function RouteGeneratorScreen() {
         nearMe: findNearMe,
       };
 
-      const response = await fetch(`${baseApiUrl}/public/generate`, {
+      const response = await fetch(`${baseApiUrl}/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(preferences),
@@ -139,6 +139,11 @@ export default function RouteGeneratorScreen() {
           />
         </>
       )}
+
+      <View style={styles.switchRow}>
+        <Text style={styles.label}>Only highest rated attractions</Text>
+        <Switch value={findNearMe} onValueChange={toggleFindNearMe} />
+      </View>
 
       <Text style={styles.label}>Duration (optional)</Text>
       <TextInput

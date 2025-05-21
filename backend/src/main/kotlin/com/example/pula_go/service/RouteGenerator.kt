@@ -70,24 +70,80 @@ class RouteGenerator {
         allAttractions: List<Attraction>,
         prefs: RoutePreferences
     ): List<Attraction> {
-        var filtered = if (prefs.categories.isNotEmpty()) {
+        val averageSpeeds = mapOf(
+            "driving-car" to 30.0,
+            "foot-walking" to 5.0,
+            "cycling-regular" to 15.0,
+            "wheelchair" to 3.0
+        )
+
+        val speedKmh = averageSpeeds[prefs.transportMode] ?: 30.0
+        val speedMps = speedKmh * 1000 / 3600
+
+        val totalDurationMin = prefs.duration?.times(60) ?: 180.0
+        val visitTimePerAttractionMin = 30.0
+
+        var remainingBudget = prefs.budget
+        var remainingTime = totalDurationMin
+
+        var candidates = if (prefs.categories.isNotEmpty()) {
             allAttractions.filter { it.category != null && it.category in prefs.categories }
-        } else {
-            allAttractions
-        }
+        } else allAttractions
 
         if (!prefs.nearMe && prefs.cities.isNotEmpty()) {
-            filtered = filtered.filter { it.city != null && it.city in prefs.cities }
+            candidates = candidates.filter { it.city != null && it.city in prefs.cities }
         }
 
         if (prefs.nearMe && prefs.userLat != null && prefs.userLng != null) {
             val radiusMeters = 20_000.0
-            filtered = filtered.filter {
-                val dist = distanceLatLng(prefs.userLat, prefs.userLng, it.lat, it.lng)
-                dist <= radiusMeters
+            candidates = candidates.filter {
+                distanceLatLng(prefs.userLat, prefs.userLng, it.lat, it.lng) <= radiusMeters
             }
         }
 
-        return generateRandomRoute(filtered)
+        if (prefs.pickHighestRated == true) {
+            candidates = candidates.sortedByDescending { it.rating ?: 0.0 }
+        } else {
+            candidates = candidates.shuffled()
+        }
+
+        val route = mutableListOf<Attraction>()
+        val remaining = candidates.toMutableList()
+        var currentLat = prefs.userLat ?: remaining.firstOrNull()?.lat
+        var currentLng = prefs.userLng ?: remaining.firstOrNull()?.lng
+
+        while (remaining.isNotEmpty() && remainingTime >= visitTimePerAttractionMin) {
+            val next = remaining.minByOrNull {
+                distanceLatLng(currentLat ?: it.lat, currentLng
+                    ?: it.lng, it.lat, it.lng)
+            } ?: break
+            val travelDistance = distanceLatLng(currentLat ?: next.lat, currentLng
+                ?: next.lng, next.lat, next.lng)
+            val travelTimeMin = travelDistance / speedMps / 60
+            val attractionPrice = next.price?.toDouble()
+
+            val canAfford = remainingBudget == null || attractionPrice == null
+                    || remainingBudget >= attractionPrice
+            val mustBeFree = remainingBudget != null && remainingBudget <= 0.0
+
+            val isAcceptable =
+                if (mustBeFree) attractionPrice == null || attractionPrice == 0.0
+                else canAfford
+
+            val totalTimeNeeded = travelTimeMin + visitTimePerAttractionMin
+
+            if (isAcceptable && remainingTime >= totalTimeNeeded) {
+                route.add(next)
+                remainingTime -= totalTimeNeeded
+                if (attractionPrice != null && remainingBudget != null) {
+                    remainingBudget -= attractionPrice
+                }
+                currentLat = next.lat
+                currentLng = next.lng
+            }
+
+            remaining.remove(next)
+        }
+        return route
     }
 }

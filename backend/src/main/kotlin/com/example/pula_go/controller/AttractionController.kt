@@ -30,6 +30,12 @@ class AttractionController(
         return attractionService.getAllAttractions(category, city)
     }
 
+    @PostMapping("/add")
+    fun addAttraction(@RequestBody attraction: Attraction): ResponseEntity<Attraction> {
+        val savedAttraction = attractionService.addAttraction(attraction)
+        return ResponseEntity.ok(savedAttraction)
+    }
+
     @PostMapping("/route")
     fun getRoute(@RequestBody attractions: List<Attraction>): List<Attraction> {
         return routeGenerator.generateRoute(attractions)

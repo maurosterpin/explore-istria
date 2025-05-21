@@ -32,7 +32,7 @@ const AttractionsPage = () => {
   const fetchAttractions = async () => {
     try {
       const response = await fetch(
-        `${baseApiUrl}/public/get?${
+        `${baseApiUrl}/get?${
           selectedCategory ? `category=${selectedCategory}` : ""
         }${selectedCity ? `&city=${selectedCity}` : ""}`
       );
@@ -138,18 +138,6 @@ const AttractionsPage = () => {
         renderItem={renderItem}
         contentContainerStyle={styles.list}
       />
-      {/* <FAB
-        style={{
-          position: "absolute",
-          margin: 16,
-          right: 0,
-          bottom: 0,
-        }}
-        label="Generate Route"
-        icon="map"
-        disabled={selectedAttractions.length < 1}
-        onPress={() => router.push("/explore")}
-      /> */}
     </SafeAreaView>
   );
 };

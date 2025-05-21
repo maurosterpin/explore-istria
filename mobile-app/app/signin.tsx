@@ -21,11 +21,11 @@ export default function SignInScreen() {
 
   const handleSignIn = async () => {
     try {
-      console.log("route", `${baseApiUrl}/public/login`);
+      console.log("route", `${baseApiUrl}/login`);
       console.log("username", username, "password", password);
       const body = JSON.stringify({ username, password });
       console.log("making request", body);
-      const response = await fetch(`${baseApiUrl}/public/login`, {
+      const response = await fetch(`${baseApiUrl}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: body,

@@ -124,7 +124,32 @@ export default function EditModal() {
             multiline={true}
             numberOfLines={4}
           />
-
+          <View style={{ display: "flex", flexDirection: "row", gap: 13 }}>
+            <View style={{ width: "48%" }}>
+              <Text style={styles.inputLabel}>Lat</Text>
+              <TextInput
+                style={styles.inputTextArea}
+                placeholder="Enter lat"
+                value={routeDescription}
+                onChangeText={setRouteDescription}
+                multiline={true}
+                numberOfLines={1}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={{ width: "48%" }}>
+              <Text style={styles.inputLabel}>Lng</Text>
+              <TextInput
+                style={styles.inputTextArea}
+                placeholder="Enter lng"
+                value={routeDescription}
+                onChangeText={setRouteDescription}
+                multiline={true}
+                numberOfLines={1}
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
           <Text style={styles.inputLabel}>Add Image</Text>
           <TouchableOpacity
             style={styles.addImageButton}
