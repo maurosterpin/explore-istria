@@ -82,6 +82,7 @@ const AttractionsPage = () => {
       rating={item.rating}
       price={item.price}
       isEditable={userId !== null}
+      
     />
   );
 

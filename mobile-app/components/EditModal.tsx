@@ -64,7 +64,7 @@ export default function EditModal() {
         description: routeDescription,
         images: images,
       };
-      // TODO
+
       const response = await fetch("todo/routes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

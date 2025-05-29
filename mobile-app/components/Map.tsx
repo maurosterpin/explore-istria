@@ -22,6 +22,8 @@ import { baseApiUrl } from "@/constants/Api";
 import { FAB } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import RateModal from "./RateModal";
+import { loadIdList } from "@/utils/AttractionRating";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -32,13 +34,18 @@ const Map = () => {
     null
   );
   const [useMyLocation, setUseMyLocation] = useState<any>(false);
-  const { selectedAttractions, setUserLat, setUserLng } = useStore();
+  const {
+    selectedAttractions,
+    setUserLat,
+    setUserLng,
+    travelMode,
+    setTravelMode,
+  } = useStore();
   const [userLocation, setUserLocation] =
     useState<Location.LocationObjectCoords | null>(null);
   const [heading, setHeading] = useState<number>(0);
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [travelMode, setTravelMode] = useState("foot-walking");
 
   const [postModalVisible, setPostModalVisible] = useState(false);
 
@@ -46,12 +53,15 @@ const Map = () => {
   const [routeDescription, setRouteDescription] = useState("");
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [images, setImages] = useState<string[]>([]);
-  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState<boolean | undefined>(
+    false
+  );
   const [currentAttractionToRate, setCurrentAttractionToRate] =
     useState<Attraction | null>(null);
 
   const watchLocSub = useRef<any>(null);
   const watchHeadSub = useRef<any>(null);
+  const [isDisabled, setIsDisabled] = useState(false);
 
   async function startNavigation() {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -113,6 +123,14 @@ const Map = () => {
     }
     generateRoute(locations);
   }, [userLocation, selectedAttractions, travelMode]);
+
+  const isIdInList = async (id: number) => {
+    const list = await loadIdList();
+    console.log("list", list);
+    const exists = list.includes(id);
+    console.log("exists", exists);
+    setIsDisabled(exists);
+  };
 
   const generateRoute = useCallback(
     async (userLoc?: any) => {
@@ -202,6 +220,8 @@ const Map = () => {
   const openPanel = useCallback((attraction: any) => {
     setSelectedAttraction(attraction);
 
+    isIdInList(attraction.id);
+
     Animated.timing(panelAnim, {
       toValue: 0,
       duration: 300,
@@ -217,6 +237,7 @@ const Map = () => {
     }).start(() => {
       setSelectedAttraction(null);
     });
+    setIsDisabled(true);
   }, []);
 
   const handleRating = async (attractionId: number, rating: number) => {
@@ -484,7 +505,16 @@ const Map = () => {
           </View>
         </View>
       </Modal>
-
+      {selectedAttraction?.id && (
+        <RateModal
+          attractionId={selectedAttraction.id}
+          isModalVisible={showRatingModal || undefined}
+          setModalVisible={(val: boolean | undefined) =>
+            setShowRatingModal(val)
+          }
+          setDisabled={setIsDisabled}
+        />
+      )}
       <Animated.View
         style={[styles.sidePanel, { transform: [{ translateX: panelAnim }] }]}
       >
@@ -517,15 +547,18 @@ const Map = () => {
                   imageSize={30}
                   startingValue={selectedAttraction.rating || 5}
                   style={{ paddingVertical: 10, alignSelf: "flex-start" }}
+                  readonly
                 />
               </>
             }
-            <TouchableOpacity
-              onPress={() => setShowRatingModal(true)}
-              style={[styles.rateButton, { marginTop: 12 }]}
-            >
-              <Text style={styles.rateButtonText}>Rate this attraction</Text>
-            </TouchableOpacity>
+            {!isDisabled && (
+              <TouchableOpacity
+                onPress={() => setShowRatingModal(true)}
+                style={[styles.rateButton, { marginTop: 12 }]}
+              >
+                <Text style={styles.rateButtonText}>Rate this attraction</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </Animated.View>

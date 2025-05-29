@@ -27,6 +27,8 @@ type GlobalStore = {
   setUserLat: (value: number | undefined) => void;
   userLng: number | undefined;
   setUserLng: (value: number | undefined) => void;
+  travelMode: string;
+  setTravelMode: (value: string) => void;
 };
 
 const StoreContext = createContext<GlobalStore | undefined>(undefined);
@@ -51,6 +53,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
   const [userLat, setUserLat] = useState<number | undefined>(undefined);
   const [userLng, setUserLng] = useState<number | undefined>(undefined);
+
+  const [travelMode, setTravelMode] = useState<string>("foot-walking");
 
   const value: GlobalStore = {
     routeAttractions,
@@ -79,6 +83,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setUserLat,
     userLng,
     setUserLng,
+    travelMode,
+    setTravelMode,
   };
 
   return (

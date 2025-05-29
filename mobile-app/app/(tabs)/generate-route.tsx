@@ -119,6 +119,7 @@ export default function RouteGeneratorScreen() {
       if (!response.ok) {
         throw new Error("Failed to generate route");
       }
+      store.setTravelMode(transportMode);
       const data = await response.json();
       setGeneratedRoute(data);
       store.setSelectedAttractions(data);
