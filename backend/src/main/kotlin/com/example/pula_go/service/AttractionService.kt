@@ -2,8 +2,10 @@ package com.example.pula_go.service
 
 import com.example.pula_go.model.Attraction
 import com.example.pula_go.model.Category
+import com.example.pula_go.model.RateAttractionRequest
 import com.example.pula_go.repository.AttractionRepository
 import org.springframework.stereotype.Service
+import kotlin.jvm.Throws
 
 @Service
 class AttractionService(
@@ -11,13 +13,22 @@ class AttractionService(
     private val googlePlacesService: GooglePlacesService
 ) {
 
+//    fun fetchAndSaveAttractions(): List<Attraction> {
+//        val attractions = googlePlacesService.fetchAllAttractions()
+//        return attractionRepository.saveAll(attractions)
+//    }
+
     fun fetchAndSaveAttractions(): List<Attraction> {
         val attractions = googlePlacesService.fetchAllAttractions()
-        return attractionRepository.saveAll(attractions)
+        return attractions
     }
 
     fun addAttraction(attraction: Attraction): Attraction {
         return attractionRepository.save(attraction)
+    }
+
+    fun addAttractions(attractions: List<Attraction>): List<Attraction> {
+        return attractionRepository.saveAll(attractions)
     }
 
     fun updateExistingAttractions(newAttractions: List<Attraction>): List<Attraction> {
@@ -36,6 +47,8 @@ class AttractionService(
 
     fun getAllAttractions(): List<Attraction> = attractionRepository.findAll()
 
+    fun getAllAttractionsByIds(ids: List<Long>): List<Attraction> = attractionRepository.findAllById(ids)
+
     fun deleteAttraction(id: Long) {
         attractionRepository.deleteById(id)
     }
@@ -47,4 +60,27 @@ class AttractionService(
         val attractions = attractionRepository.findByIdIn(idsList)
         return attractions
     }
+
+    fun rateAttraction(request: RateAttractionRequest): String {
+        val optionalAttraction = attractionRepository.findById(request.attractionId)
+        if (optionalAttraction.isPresent) {
+            val attraction = optionalAttraction.get()
+
+            val currentRating = attraction.rating
+            val currentCount = attraction.ratingCount
+
+            val newCount = currentCount + 1
+            val newRating = ((currentRating * currentCount) + request.rating) / newCount
+
+            attraction.rating = newRating
+            attraction.ratingCount = newCount
+
+            attractionRepository.save(attraction)
+
+            return "Success"
+        }
+
+        return "Attraction not found"
+    }
+
 }

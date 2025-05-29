@@ -32,7 +32,7 @@ const Map = () => {
     null
   );
   const [useMyLocation, setUseMyLocation] = useState<any>(false);
-  const { selectedAttractions } = useStore();
+  const { selectedAttractions, setUserLat, setUserLng } = useStore();
   const [userLocation, setUserLocation] =
     useState<Location.LocationObjectCoords | null>(null);
   const [heading, setHeading] = useState<number>(0);
@@ -98,6 +98,8 @@ const Map = () => {
 
   useEffect(() => {
     let locations = null;
+    setUserLat(userLocation?.latitude);
+    setUserLng(userLocation?.longitude);
     if (userLocation?.latitude && userLocation?.longitude) {
       const user: Attraction = {
         id: 0,
@@ -500,11 +502,12 @@ const Map = () => {
             <Text style={styles.description}>
               {selectedAttraction.description}
             </Text>
-            {selectedAttraction?.price && (
-              <Text style={styles.rating}>
-                Price: {`${selectedAttraction?.price}`}€
-              </Text>
-            )}
+            {selectedAttraction?.price !== null &&
+              selectedAttraction?.price !== null && (
+                <Text style={styles.rating}>
+                  Price: {`${selectedAttraction?.price}`}€
+                </Text>
+              )}
             {
               <>
                 <Text style={styles.rating}>Rating:</Text>

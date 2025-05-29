@@ -20,6 +20,8 @@ data class RouteComment(
     @Column(columnDefinition = "TEXT")
     val comment: String,
 
+    val rating: Double? = null,
+
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_plan_id")

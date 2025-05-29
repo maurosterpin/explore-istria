@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,10 +11,14 @@ import { useStore } from "../store/AttractionStore";
 import { baseApiUrl } from "@/constants/Api";
 import AttractionCard from "@/components/AttractionCard";
 import { Picker } from "@react-native-picker/picker";
+import { useFocusEffect } from "expo-router";
+import { ALL_CITIES } from "./routes";
 
 const AttractionsPage = () => {
   const [attractions, setAttractions] = useState<Attraction[]>([]);
   const {
+    routeAttractions,
+    setRouteAttractions,
     userId,
     selectedAttractions,
     setSelectedAttractions,
@@ -24,6 +28,14 @@ const AttractionsPage = () => {
     setSelectedCity,
   } = useStore();
   const [showOnlySelected, setShowOnlySelected] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setRouteAttractions([]);
+      };
+    }, [])
+  );
 
   useEffect(() => {
     fetchAttractions();
@@ -73,40 +85,46 @@ const AttractionsPage = () => {
     />
   );
 
-  const header = () => (
-    <View style={styles.headerContainer}>
-      <Text style={styles.headerTitle}>Route Attractions</Text>
+  const header = () => {
+    if (routeAttractions.length > 0) return null;
+    return (
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>Route Attractions</Text>
 
-      <View style={styles.filterRow}>
-        <Text style={styles.filterLabel}>Only In Route</Text>
-        <Switch value={showOnlySelected} onValueChange={setShowOnlySelected} />
+        <View style={styles.filterRow}>
+          <Text style={styles.filterLabel}>Only In Route</Text>
+          <Switch
+            value={showOnlySelected}
+            onValueChange={setShowOnlySelected}
+          />
+        </View>
+
+        <Picker
+          style={styles.picker}
+          selectedValue={selectedCategory}
+          onValueChange={(val) => setSelectedCategory(val)}
+        >
+          <Picker.Item label="All Categories" value={null} />
+          <Picker.Item label="Historical" value={"HISTORICAL"} />
+          <Picker.Item label="Cultural" value={"CULTURAL"} />
+          <Picker.Item label="Natural" value={"NATURAL"} />
+          <Picker.Item label="Recreational" value={"RECREATIONAL"} />
+          <Picker.Item label="Culinary" value={"CULINARY"} />
+        </Picker>
+
+        <Picker
+          style={styles.picker}
+          selectedValue={selectedCity}
+          onValueChange={(val) => setSelectedCity(val)}
+        >
+          {/* <Picker.Item label="All Cities" value={null} /> */}
+          {ALL_CITIES.map((city) => (
+            <Picker.Item label={city} value={city} />
+          ))}
+        </Picker>
       </View>
-
-      <Picker
-        style={styles.picker}
-        selectedValue={selectedCategory}
-        onValueChange={(val) => setSelectedCategory(val)}
-      >
-        <Picker.Item label="All Categories" value={null} />
-        <Picker.Item label="Historical" value={"HISTORICAL"} />
-        <Picker.Item label="Cultural" value={"CULTURAL"} />
-        <Picker.Item label="Natural" value={"NATURAL"} />
-        <Picker.Item label="Recreational" value={"RECREATIONAL"} />
-        <Picker.Item label="Culinary" value={"CULINARY"} />
-      </Picker>
-
-      <Picker
-        style={styles.picker}
-        selectedValue={selectedCity}
-        onValueChange={(val) => setSelectedCity(val)}
-      >
-        <Picker.Item label="All Cities" value={null} />
-        <Picker.Item label="Pula" value="Pula" />
-        <Picker.Item label="Porec" value="Porec" />
-        <Picker.Item label="Rovinj" value="Rovinj" />
-      </Picker>
-    </View>
-  );
+    );
+  };
 
   if (
     showOnlySelected &&
@@ -128,7 +146,9 @@ const AttractionsPage = () => {
       {header()}
       <FlatList
         data={
-          showOnlySelected
+          routeAttractions?.length > 0
+            ? routeAttractions
+            : showOnlySelected
             ? attractions.filter((attraction) =>
                 selectedAttractions.some((sel) => sel.id === attraction.id)
               )

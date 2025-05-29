@@ -16,8 +16,7 @@ class RouteCommentController(
 ) {
 
     data class CommentRequest(
-        val userId: Long,
-        val username: String,
+        val rating: Double,
         val comment: String
     )
 
@@ -35,7 +34,7 @@ class RouteCommentController(
         @PathVariable routePlanId: Long,
         @RequestBody request: CommentRequest
     ): RouteComment? {
-        return routeCommentService.addComment(routePlanId, request.userId, request.username, request.comment)
+        return routeCommentService.addComment(routePlanId, request.comment, request.rating)
     }
 
     @GetMapping("/routes/comment/{routePlanId}")

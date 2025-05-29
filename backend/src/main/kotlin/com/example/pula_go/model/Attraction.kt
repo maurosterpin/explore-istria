@@ -24,7 +24,9 @@ data class Attraction(
     @Column(columnDefinition = "TEXT")
     val imageUrl: String? = null,
 
-    val rating: Double? = null,
+    var rating: Double = 0.0,
+
+    var ratingCount: Long = 0,
 
     @Enumerated(EnumType.STRING)
     val category: Category? = null,

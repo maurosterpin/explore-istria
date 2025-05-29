@@ -70,6 +70,7 @@ export default function RouteGeneratorScreen() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [findNearMe, setFindNearMe] = useState<boolean>(false);
+  const [useHighestRated, setUseHighestRated] = useState<boolean>(false);
   const [duration, setDuration] = useState("");
   const [budget, setBudget] = useState("");
   const [transportMode, setTransportMode] = useState<
@@ -89,9 +90,10 @@ export default function RouteGeneratorScreen() {
 
   const toggleFindNearMe = (value: boolean) => {
     setFindNearMe(value);
-    if (value) {
-      // setSelectedCities([]);
-    }
+  };
+
+  const toggleHighestRated = (value: boolean) => {
+    setUseHighestRated(value);
   };
 
   const handleGenerateRoute = async () => {
@@ -100,6 +102,12 @@ export default function RouteGeneratorScreen() {
         categories: selectedCategories,
         cities: findNearMe ? [] : selectedCities,
         nearMe: findNearMe,
+        userLat: store?.userLat,
+        userLng: store?.userLng,
+        duration,
+        budget,
+        transportMode,
+        pickHighestRated: useHighestRated,
       };
 
       const response = await fetch(`${baseApiUrl}/generate`, {
@@ -178,13 +186,13 @@ export default function RouteGeneratorScreen() {
 
       <View style={styles.switchRow}>
         <Text style={styles.label}>Only highest rated attractions</Text>
-        <Switch value={findNearMe} onValueChange={toggleFindNearMe} />
+        <Switch value={useHighestRated} onValueChange={toggleHighestRated} />
       </View>
 
-      <Text style={styles.label}>Duration (optional)</Text>
+      <Text style={styles.label}>Duration in hours (optional)</Text>
       <TextInput
         style={styles.input}
-        placeholder="e.g. 2h 30m"
+        placeholder="e.g. 2"
         value={duration}
         onChangeText={setDuration}
       />

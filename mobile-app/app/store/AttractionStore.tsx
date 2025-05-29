@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState } from "react";
 
 type GlobalStore = {
+  routeAttractions: Attraction[];
+  setRouteAttractions: (value: Attraction[]) => void;
   selectedAttractions: Attraction[];
   setSelectedAttractions: (value: Attraction[]) => void;
   selectedCity: string | null;
@@ -21,6 +23,10 @@ type GlobalStore = {
   setModalState: (value: "Edit" | "Add") => void;
   modalType: "Attraction" | "Route";
   setModalType: (value: "Attraction" | "Route") => void;
+  userLat: number | undefined;
+  setUserLat: (value: number | undefined) => void;
+  userLng: number | undefined;
+  setUserLng: (value: number | undefined) => void;
 };
 
 const StoreContext = createContext<GlobalStore | undefined>(undefined);
@@ -29,6 +35,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [selectedAttractions, setSelectedAttractions] = useState<Attraction[]>(
     []
   );
+  const [routeAttractions, setRouteAttractions] = useState<Attraction[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -37,13 +44,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [userUpvotedRoutes, setUserUpvotedRoutes] = useState<number[] | null>(
     null
   );
-  const [openModal, setOpenModal] = useState<boolean>(true);
+  const [openModal, setOpenModal] = useState<boolean>(false);
   const [modalState, setModalState] = useState<"Edit" | "Add">("Add");
   const [modalType, setModalType] = useState<"Attraction" | "Route">(
     "Attraction"
   );
+  const [userLat, setUserLat] = useState<number | undefined>(undefined);
+  const [userLng, setUserLng] = useState<number | undefined>(undefined);
 
   const value: GlobalStore = {
+    routeAttractions,
+    setRouteAttractions,
     selectedAttractions,
     setSelectedAttractions,
     selectedCategory,
@@ -64,6 +75,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setModalState,
     modalType,
     setModalType,
+    userLat,
+    setUserLat,
+    userLng,
+    setUserLng,
   };
 
   return (

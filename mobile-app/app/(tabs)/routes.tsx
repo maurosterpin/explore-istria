@@ -39,7 +39,8 @@ type RoutePlan = {
 
 type RouteComment = {
   id: number;
-  username: string;
+  username?: string;
+  rating: number;
   comment: string;
   createdAt?: string;
 };
@@ -103,6 +104,7 @@ export default function RoutesPage() {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("official");
+  const [isDisabled, setIsDisabled] = useState(false);
 
   const router = useRouter();
   const store = useStore();
@@ -116,6 +118,7 @@ export default function RoutesPage() {
   const [fullScreenVisible, setFullScreenVisible] = useState(false);
   const [fullScreenImages, setFullScreenImages] = useState<string[]>([]);
   const [initialImageIndex, setInitialImageIndex] = useState<number>(0);
+  const [rating, setRating] = useState<number>(0);
 
   const fetchRoutes = async () => {
     setLoading(true);
@@ -135,6 +138,8 @@ export default function RoutesPage() {
       setLoading(false);
     }
   };
+
+  const STORAGE_KEY = "rating_list";
 
   useEffect(() => {
     if (!showCommentsModal) fetchRoutes();
@@ -160,6 +165,48 @@ export default function RoutesPage() {
       console.error("Failed to use route:", error);
       Alert.alert("Error", "An error occurred. Please try again later.");
     }
+  };
+
+  const saveIdList = async (list: number[]) => {
+    try {
+      const jsonValue = JSON.stringify(list);
+      await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
+    } catch (e) {
+      console.error("Error saving rating list", e);
+    }
+  };
+
+  const loadIdList = async () => {
+    try {
+      console.log("loading list...");
+      const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
+      const res = jsonValue != null ? JSON.parse(jsonValue) : [];
+      console.log("res", res);
+      return res;
+    } catch (e) {
+      console.error("Error loading rating list", e);
+      return [];
+    }
+  };
+
+  const checkIfIdExists = async (id: number) => {
+    await isIdInList(id);
+  };
+
+  const addIdToList = async (id: number) => {
+    const list = await loadIdList();
+    if (!list.includes(id)) {
+      list.push(id);
+      await saveIdList(list);
+    }
+  };
+
+  const isIdInList = async (id: number) => {
+    const list = await loadIdList();
+    console.log("list", list);
+    const exists = list.includes(id);
+    console.log("exists", exists);
+    setIsDisabled(exists);
   };
 
   const handleUpvote = async (routeItem: RoutePlan) => {
@@ -198,6 +245,17 @@ export default function RoutesPage() {
     } catch (error) {
       console.error("Upvote error:", error);
       Alert.alert("Error", "An error occurred while upvoting.");
+    }
+  };
+
+  const fetchAttractionsByIds = async (ids: Number[]) => {
+    try {
+      const response = await fetch(`${baseApiUrl}/getByIds?ids=${ids}`);
+      const data = await response.json();
+      store.setRouteAttractions(data);
+      return data;
+    } catch (error) {
+      console.error("Error fetching route attractions:", error);
     }
   };
 
@@ -250,6 +308,7 @@ export default function RoutesPage() {
     setShowCommentsModal(true);
     setComments([]);
     setNewComment("");
+    await checkIfIdExists(routeItem.id);
 
     try {
       const response = await fetch(
@@ -271,36 +330,36 @@ export default function RoutesPage() {
   }
 
   const postComment = async () => {
-    if (!userId) {
-      Alert.alert("Login Required", "You must be signed in to comment.");
-      return;
-    }
+    // if (!userId) {
+    //   Alert.alert("Login Required", "You must be signed in to comment.");
+    //   return;
+    // }
     if (!selectedRoute) return;
-    const token = await AsyncStorage.getItem("jwtToken");
-    if (!token) {
-      throw new Error("No token found");
-    }
+    // const token = await AsyncStorage.getItem("jwtToken");
+    // if (!token) {
+    //   throw new Error("No token found");
+    // }
     try {
-      console.log(
-        "body",
-        JSON.stringify({ userId, username, comment: newComment })
-      );
+      console.log("body", JSON.stringify({ comment: newComment, rating }));
       const response = await fetch(
         `${baseApiUrl}/routes/comment/${selectedRoute.id}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            // Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ userId, username, comment: newComment }),
+          body: JSON.stringify({ comment: newComment, rating }),
         }
       );
       console.log("response", response);
       if (response.ok) {
         const createdComment = await response.json();
         setComments((prev) => [...prev, createdComment]);
+        addIdToList(selectedRoute.id);
         setNewComment("");
+        setRating(0);
+        setIsDisabled(true);
       } else {
         const errData = await response.json();
         Alert.alert(
@@ -320,7 +379,12 @@ export default function RoutesPage() {
       <Card style={styles.card}>
         <Text style={styles.cardTitle}>{item.name}</Text>
         <IconButton
-          style={{ position: "absolute", right: -10, top: -10 }}
+          style={{
+            position: "absolute",
+            right: -10,
+            top: -10,
+            display: store.userId ? undefined : "none",
+          }}
           icon="pencil"
           onPress={() => {}}
         />
@@ -337,7 +401,13 @@ export default function RoutesPage() {
         <Text style={styles.cardDescription}>{item.description}</Text>
         <TouchableOpacity
           style={styles.viewAttractionsButton}
-          onPress={() => {}}
+          onPress={async () => {
+            const attractions: Attraction[] = await fetchAttractionsByIds(
+              item.attractionIds.split(",").map((s) => Number(s.trim()))
+            );
+            store.setRouteAttractions(attractions);
+            router.push("/");
+          }}
         >
           <Text style={styles.viewAttractionsButtonText}>View Attractions</Text>
         </TouchableOpacity>
@@ -524,7 +594,11 @@ export default function RoutesPage() {
           visible={showCommentsModal}
           animationType="slide"
           transparent={true}
-          onRequestClose={() => setShowCommentsModal(false)}
+          onRequestClose={() => {
+            setShowCommentsModal(false);
+            setRating(0);
+            setNewComment("");
+          }}
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalSheet}>
@@ -536,7 +610,11 @@ export default function RoutesPage() {
 
               <TouchableOpacity
                 style={styles.closeModalButton}
-                onPress={() => setShowCommentsModal(false)}
+                onPress={() => {
+                  setShowCommentsModal(false);
+                  setRating(0);
+                  setNewComment("");
+                }}
               >
                 <Ionicons name="close" size={24} color="#333" />
               </TouchableOpacity>
@@ -546,14 +624,15 @@ export default function RoutesPage() {
                   <View key={c.id} style={styles.commentItem}>
                     <Rating
                       type="star"
-                      ratingCount={5}
+                      // ratingCount={c.rating}
                       imageSize={20}
-                      startingValue={5}
+                      startingValue={c.rating}
                       style={{
                         paddingBottom: 5,
                         alignSelf: "flex-start",
                         backgroundColor: "transparent",
                       }}
+                      readonly
                     />
                     {/* <Text style={styles.commentUsername}>{c.username}</Text> */}
                     <Text style={styles.commentText}>{c.comment}</Text>
@@ -574,11 +653,12 @@ export default function RoutesPage() {
                     type="custom"
                     ratingCount={5}
                     imageSize={30}
-                    startingValue={0}
+                    startingValue={rating}
                     style={{
                       paddingBottom: 10,
                       alignSelf: "flex-start",
                     }}
+                    onFinishRating={(val: any) => setRating(val)}
                   />
                   <TextInput
                     style={styles.commentInput}
@@ -588,8 +668,15 @@ export default function RoutesPage() {
                   />
                 </View>
                 <TouchableOpacity
-                  style={styles.postButton}
+                  style={{
+                    backgroundColor: "#118cf1",
+                    paddingVertical: 10,
+                    paddingHorizontal: 16,
+                    borderRadius: 6,
+                    opacity: isDisabled ? 0.5 : 1,
+                  }}
                   onPress={postComment}
+                  disabled={isDisabled}
                 >
                   <Text style={styles.postButtonText}>Rate</Text>
                 </TouchableOpacity>

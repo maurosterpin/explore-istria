@@ -10,14 +10,15 @@ class RouteCommentService(
     private val routeCommentRepository: RouteCommentRepository,
     private val routePlanRepository: RoutePlanRepository,
 ) {
-    fun addComment(routePlanId: Long, userId: Long, username: String, comment: String): RouteComment? {
+    fun addComment(routePlanId: Long, comment: String, rating: Double): RouteComment? {
         val routePlan = routePlanRepository.findById(routePlanId).orElse(null) ?: return null
 
         val newComment = RouteComment(
-            userId = userId,
             comment = comment,
             routePlan = routePlan,
-            username = username
+            rating = rating,
+            userId = 1,
+            username = ""
         )
 
         return routeCommentRepository.save(newComment)

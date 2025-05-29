@@ -17,10 +17,10 @@ class AttractionController(
     private val routeGenerator: RouteGenerator
 ) {
 
-//    @GetMapping("/fetch")
-//    fun fetchAttractions(): List<Attraction> {
-//        return attractionService.fetchAndSaveAttractions()
-//    }
+    @GetMapping("/fetch")
+    fun fetchAttractions(): List<Attraction> {
+        return attractionService.fetchAndSaveAttractions()
+    }
 
     @GetMapping("/get")
     fun getAttractions(
@@ -30,10 +30,23 @@ class AttractionController(
         return attractionService.getAllAttractions(category, city)
     }
 
+    @GetMapping("/getByIds")
+    fun getAttractionsByIds(
+        @RequestParam(required = true) ids: List<Long>,
+    ): List<Attraction?>? {
+        return attractionService.getAllAttractionsByIds(ids)
+    }
+
     @PostMapping("/add")
     fun addAttraction(@RequestBody attraction: Attraction): ResponseEntity<Attraction> {
         val savedAttraction = attractionService.addAttraction(attraction)
         return ResponseEntity.ok(savedAttraction)
+    }
+
+    @PostMapping("/adds")
+    fun addAttractions(@RequestBody attractions: List<Attraction>): ResponseEntity<List<Attraction>> {
+        val savedAttractions = attractionService.addAttractions(attractions)
+        return ResponseEntity.ok(savedAttractions)
     }
 
     @PostMapping("/route")
@@ -48,7 +61,7 @@ class AttractionController(
 
     @PostMapping("/attraction/rate")
     fun rateAttraction(@RequestBody rateAttractionRequest: RateAttractionRequest): ResponseEntity<String> {
-        return ResponseEntity.ok("Success")
+        return ResponseEntity.ok(attractionService.rateAttraction(rateAttractionRequest))
     }
 
     @PostMapping("/generate")

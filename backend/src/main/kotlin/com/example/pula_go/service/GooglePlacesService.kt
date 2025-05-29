@@ -45,11 +45,11 @@ class GooglePlacesService(
     )
 
     private val gridPoints = listOf(
-        Pair(44.8666, 13.85),
-        Pair(44.87, 13.84),
-        Pair(44.87, 13.86),
-        Pair(44.86, 13.84),
-        Pair(44.86, 13.86)
+        Pair(45.0830, 13.6405), // north-east
+        Pair(45.0794, 13.6405), // south-east
+        Pair(45.0794, 13.6369), // south-west
+        Pair(45.0830, 13.6369), // north-west
+        Pair(45.0812, 13.6387)  // center (Old Town)
     )
 
     private fun fetchAttractionDetails(placeId: String): Pair<String?, String?> {
@@ -74,7 +74,7 @@ class GooglePlacesService(
         val attractionsMap = mutableMapOf<String, Attraction>()
 
         for ((lat, lng) in gridPoints) {
-            var url = "/maps/api/place/nearbysearch/json?location=$lat,$lng&radius=$radius&type=tourist_attraction&key=$apiKey"
+            var url = "/maps/api/place/nearbysearch/json?location=$lat,$lng&radius=5000&type=tourist_attraction&key=$apiKey"
             do {
                 val response = webClient.get()
                     .uri(url)
@@ -91,7 +91,10 @@ class GooglePlacesService(
                                 lat = place.geometry.location.lat,
                                 lng = place.geometry.location.lng,
                                 description = description,
-                                imageUrl = imageUrl
+                                imageUrl = imageUrl,
+                                city = "Umag",
+                                rating = 5.0,
+
                             )
                             attractionsMap[place.place_id] = attraction
                         }
