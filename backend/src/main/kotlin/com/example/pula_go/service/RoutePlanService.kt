@@ -70,7 +70,7 @@ class RoutePlanService(
         }
 
         val sortedRoutes = when (sortBy?.toLowerCase()) {
-            "most upvoted" -> routes.sortedByDescending { it.upvotes }
+            "highest rated" -> routes.sortedByDescending { it.upvotes } // TODO
             else -> routes.sortedByDescending { it.id }
         }
 

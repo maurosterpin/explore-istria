@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Switch,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { useStore } from "../store/AttractionStore";
 import { baseApiUrl } from "@/constants/Api";
@@ -28,6 +29,7 @@ const AttractionsPage = () => {
     setSelectedCity,
   } = useStore();
   const [showOnlySelected, setShowOnlySelected] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -43,6 +45,7 @@ const AttractionsPage = () => {
 
   const fetchAttractions = async () => {
     try {
+      setIsLoading(true);
       const response = await fetch(
         `${baseApiUrl}/get?${
           selectedCategory ? `category=${selectedCategory}` : ""
@@ -53,6 +56,8 @@ const AttractionsPage = () => {
       return data;
     } catch (error) {
       console.error("Error fetching attraction:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -72,9 +77,13 @@ const AttractionsPage = () => {
 
   const renderItem = ({ item }: any) => (
     <AttractionCard
+      key={item.id}
+      id={item.id}
       title={item.name}
       description={item.description}
       image={item.imageUrl}
+      lat={item.lat}
+      lng={item.lng}
       inRoute={selectedAttractions.find((a) => a.id === item.id)}
       onClick={() => toggleRoute(item)}
       category={item.category}
@@ -82,7 +91,6 @@ const AttractionsPage = () => {
       rating={item.rating}
       price={item.price}
       isEditable={userId !== null}
-      
     />
   );
 
@@ -118,7 +126,7 @@ const AttractionsPage = () => {
           selectedValue={selectedCity}
           onValueChange={(val) => setSelectedCity(val)}
         >
-          {/* <Picker.Item label="All Cities" value={null} /> */}
+          <Picker.Item label="All Cities" value={null} />
           {ALL_CITIES.map((city) => (
             <Picker.Item label={city} value={city} />
           ))}
@@ -145,20 +153,33 @@ const AttractionsPage = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       {header()}
-      <FlatList
-        data={
-          routeAttractions?.length > 0
-            ? routeAttractions
-            : showOnlySelected
-            ? attractions.filter((attraction) =>
-                selectedAttractions.some((sel) => sel.id === attraction.id)
-              )
-            : attractions
-        }
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={styles.list}
-      />
+      {isLoading ? (
+        <View
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "50%",
+          }}
+        >
+          <ActivityIndicator size="large" color="#0066ff" />
+        </View>
+      ) : (
+        <FlatList
+          data={
+            routeAttractions?.length > 0
+              ? routeAttractions
+              : showOnlySelected
+              ? attractions.filter((attraction) =>
+                  selectedAttractions.some((sel) => sel.id === attraction.id)
+                )
+              : attractions
+          }
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={styles.list}
+        />
+      )}
     </SafeAreaView>
   );
 };

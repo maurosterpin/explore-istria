@@ -45,7 +45,7 @@ type RouteComment = {
   createdAt?: string;
 };
 
-const sortOptions = ["Most Upvoted", "Latest"];
+const sortOptions = ["Highest Rated", "Latest"];
 export const ALL_CITIES = [
   "Pula",
   "Rovinj",
@@ -57,7 +57,7 @@ export const ALL_CITIES = [
   "Buje",
   "Vodnjan",
   "Pazin",
-  "Bale",
+  //"Bale",
   "Barban",
   "Brtonigla",
   "Cerovlje",
@@ -386,7 +386,11 @@ export default function RoutesPage() {
             display: store.userId ? undefined : "none",
           }}
           icon="pencil"
-          onPress={() => {}}
+          onPress={() => {
+            store.setModalType("Route");
+            store.setModalState("Edit");
+            store.setOpenModal(true);
+          }}
         />
         <Text style={styles.cardMeta}>
           {item.city} •{" "}

@@ -37,7 +37,7 @@ class AttractionController(
         return attractionService.getAllAttractionsByIds(ids)
     }
 
-    @PostMapping("/add")
+    @PostMapping("/attraction/add")
     fun addAttraction(@RequestBody attraction: Attraction): ResponseEntity<Attraction> {
         val savedAttraction = attractionService.addAttraction(attraction)
         return ResponseEntity.ok(savedAttraction)

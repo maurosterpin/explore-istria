@@ -1,26 +1,57 @@
+import { useStore } from "@/app/store/AttractionStore";
 import * as React from "react";
 import { View, StyleSheet } from "react-native";
 import { Card, Text, Button, Chip, IconButton } from "react-native-paper";
 
 export default function AttractionCard({
+  id,
   title,
   image,
   description,
   inRoute,
   onClick,
   category,
+  lat,
+  lng,
   city,
   rating,
   price,
   isEditable,
 }: any) {
+  const store = useStore();
   return (
     <Card style={styles.card}>
       <Card.Cover source={{ uri: image }} style={styles.cover} />
       <Card.Title
         title={title}
         {...(isEditable
-          ? { right: () => <IconButton icon="pencil" onPress={() => {}} /> }
+          ? {
+              right: () => (
+                <IconButton
+                  icon="pencil"
+                  onPress={() => {
+                    store.setEditAttraction({
+                      id,
+                      name: title,
+                      description,
+                      imageUrl: image,
+                      lat,
+                      lng,
+                      rating,
+                      price,
+                      city,
+                      category,
+                    });
+                    console.log(store.editAttraction);
+                    setTimeout(() => {
+                      store.setModalState("Edit");
+                      store.setModalType("Attraction");
+                      store.setOpenModal(true);
+                    }, 0);
+                  }}
+                />
+              ),
+            }
           : {})}
       />
       <Card.Content>

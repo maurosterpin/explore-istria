@@ -21,8 +21,12 @@ const AppHeader: React.FC = () => {
 
   const toggleDropdown = () => setDropdownVisible((prev) => !prev);
 
-  const handleOption = async (option: "profile" | "signOut") => {
-    if (option === "signOut") {
+  const handleOption = async (option: "Attraction" | "Route" | "signOut") => {
+    if (option !== "signOut") {
+      store.setModalType(option);
+      store.setModalState("Add");
+      store.setOpenModal(true);
+    } else if (option === "signOut") {
       try {
         await AsyncStorage.removeItem("jwtToken");
         store.setUsername(null);
@@ -54,13 +58,13 @@ const AppHeader: React.FC = () => {
                 </Pressable> */}
                 <Pressable
                   style={styles.dropdownItem}
-                  onPress={() => handleOption("profile")}
+                  onPress={() => handleOption("Attraction")}
                 >
                   <Text style={styles.dropdownText}>Add Attraction</Text>
                 </Pressable>
                 <Pressable
                   style={styles.dropdownItem}
-                  onPress={() => handleOption("profile")}
+                  onPress={() => handleOption("Route")}
                 >
                   <Text style={styles.dropdownText}>Add Route</Text>
                 </Pressable>

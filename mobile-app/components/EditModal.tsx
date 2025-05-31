@@ -16,10 +16,26 @@ import * as ImagePicker from "expo-image-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 import MultiSelect from "react-native-multiple-select";
 import { ALL_CATEGORIES, ALL_CITIES } from "@/app/(tabs)/generate-route";
+import { baseApiUrl, cdnApiKey } from "@/constants/Api";
 
 export default function EditModal() {
+  const {
+    openModal,
+    setOpenModal,
+    modalState,
+    modalType,
+    editAttraction,
+    setEditAttraction,
+  } = useStore();
+
+  useEffect(() => {
+    console.log("reload", editAttraction);
+  }, [editAttraction]);
+
   const [routeTitle, setRouteTitle] = useState("");
   const [routeDescription, setRouteDescription] = useState("");
+  const [routeLat, setRouteLat] = useState("");
+  const [routeLng, setRouteLng] = useState("");
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -30,6 +46,28 @@ export default function EditModal() {
       setImageUrlInput("");
     }
   };
+  useEffect(() => {
+    if (editAttraction) {
+      setRouteTitle(editAttraction.name);
+      setRouteDescription(editAttraction.description);
+      setRouteLat(editAttraction.lat.toString());
+      setRouteLng(editAttraction.lng.toString());
+      setImages([editAttraction.imageUrl]);
+      setSelectedCategories([editAttraction.category as string]);
+      setSelectedCities([editAttraction.city as string]);
+      if (editAttraction.price) setPrice(editAttraction.price.toString());
+    } else {
+      setRouteTitle("");
+      setRouteDescription("");
+      setRouteLat("");
+      setRouteLng("");
+      setImages([]);
+      setSelectedCategories([]);
+      setSelectedCities([]);
+      setPrice("");
+    }
+  }, [editAttraction]);
+
   const handleCategoriesChange = (items: any) => {
     setSelectedCategories(items);
   };
@@ -41,17 +79,6 @@ export default function EditModal() {
   const [category, setCategory] = useState(null);
   const [price, setPrice] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [dropdownItems, setDropdownItems] = useState([
-    { label: "Museum", value: "museum" },
-    { label: "Park", value: "park" },
-    { label: "Historic", value: "historic" },
-  ]);
-  const [cityItems, setCityItems] = useState([
-    { label: "Pula", value: "Pula" },
-    { label: "Porec", value: "Porec" },
-    { label: "Rovinj", value: "Rovinj" },
-  ]);
-  const { openModal, setOpenModal, modalState, modalType } = useStore();
 
   const removeImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
@@ -62,10 +89,12 @@ export default function EditModal() {
       const routeData = {
         name: routeTitle,
         description: routeDescription,
-        images: images,
+        lat: routeLat,
+        lng: routeLng,
+        images: [imageUrl],
       };
 
-      const response = await fetch("todo/routes", {
+      const response = await fetch(`${baseApiUrl}/routes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(routeData),
@@ -87,18 +116,104 @@ export default function EditModal() {
     }
   }
 
+  async function createAttraction() {
+    try {
+      const attractionData = {
+        id: editAttraction?.id || 0,
+        name: routeTitle,
+        description: routeDescription,
+        lat: parseFloat(routeLat),
+        lng: parseFloat(routeLng),
+        imageUrl: imageUrl,
+        rating: 5,
+        ratingCount: 1,
+        category: selectedCategories[0],
+        price: parseFloat(price),
+        city: selectedCities[0],
+      };
+      console.log("attraction", JSON.stringify(attractionData));
+      const response = await fetch(`${baseApiUrl}/attraction/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(attractionData),
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        Alert.alert("Error", errData.message || "Failed to create attraction");
+        return;
+      }
+      const createdAttraction = await response.json();
+      Alert.alert("Success", "Attraction created successfully!");
+      setOpenModal(false);
+      setRouteTitle("");
+      setRouteDescription("");
+      setImages([]);
+    } catch (error) {
+      console.error("Attraction error:", error);
+      Alert.alert(
+        "Error",
+        "An error occurred while submitting the attraction."
+      );
+    }
+  }
+
+  const [imageUrl, setImageUrl] = useState(null);
+
+  const pickImageAndUpload = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+      allowsEditing: true,
+    });
+
+    if (!result.canceled) {
+      const file = result.assets[0];
+      console.log("file", file);
+      const formData = new FormData();
+      formData.append("file", {
+        uri: file.uri,
+        type: "image/jpeg",
+        name: "upload.jpg",
+      } as any);
+      formData.append("upload_preset", "my_preset");
+      console.log("api key", cdnApiKey);
+      console.log(
+        "url",
+        `https://api.cloudinary.com/v1_1/${process.env.EXPO_PUBLIC_CLOUD_NAME}/image/upload`
+      );
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.EXPO_PUBLIC_CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      console.log("res", res);
+      const data = await res.json();
+      setImageUrl(data.secure_url);
+      console.log("image url", data.secure_url);
+      setImages(() => [data.secure_url]);
+    }
+  };
+
   return (
     <Modal
       visible={openModal}
       animationType="slide"
       transparent={true}
-      onRequestClose={() => setOpenModal(false)}
+      onRequestClose={() => {
+        setOpenModal(false);
+        setEditAttraction(undefined);
+      }}
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <TouchableOpacity
             style={styles.closeModalButton}
-            onPress={() => setOpenModal(false)}
+            onPress={() => {
+              setOpenModal(false);
+              // setEditAttraction(undefined);
+            }}
           >
             <MaterialCommunityIcons on name="close" size={28} color="#333" />
           </TouchableOpacity>
@@ -124,48 +239,59 @@ export default function EditModal() {
             multiline={true}
             numberOfLines={4}
           />
-          <View style={{ display: "flex", flexDirection: "row", gap: 13 }}>
-            <View style={{ width: "48%" }}>
-              <Text style={styles.inputLabel}>Lat</Text>
-              <TextInput
-                style={styles.inputTextArea}
-                placeholder="Enter lat"
-                value={routeDescription}
-                onChangeText={setRouteDescription}
-                multiline={true}
-                numberOfLines={1}
-                keyboardType="numeric"
-              />
+          {modalType === "Attraction" && (
+            <View style={{ display: "flex", flexDirection: "row", gap: 13 }}>
+              <View style={{ width: "48%" }}>
+                <Text style={styles.inputLabel}>Lat</Text>
+                <TextInput
+                  style={styles.inputTextArea}
+                  placeholder="Enter lat"
+                  value={routeLat}
+                  onChangeText={setRouteLat}
+                  multiline={true}
+                  numberOfLines={1}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={{ width: "48%" }}>
+                <Text style={styles.inputLabel}>Lng</Text>
+                <TextInput
+                  style={styles.inputTextArea}
+                  placeholder="Enter lng"
+                  value={routeLng}
+                  onChangeText={setRouteLng}
+                  multiline={true}
+                  numberOfLines={1}
+                  keyboardType="numeric"
+                />
+              </View>
             </View>
-            <View style={{ width: "48%" }}>
-              <Text style={styles.inputLabel}>Lng</Text>
-              <TextInput
-                style={styles.inputTextArea}
-                placeholder="Enter lng"
-                value={routeDescription}
-                onChangeText={setRouteDescription}
-                multiline={true}
-                numberOfLines={1}
-                keyboardType="numeric"
-              />
-            </View>
-          </View>
-          <Text style={styles.inputLabel}>Add Image</Text>
-          <TouchableOpacity
-            style={styles.addImageButton}
-            onPress={async () => {
-              const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                quality: 0.7,
-              });
-              if (!result.canceled && result.assets.length > 0) {
-                setImages((prev) => [...prev, result.assets[0].uri]);
-              }
-            }}
-          >
-            <Text style={{ color: "#fff" }}>Choose Images</Text>
-          </TouchableOpacity>
+          )}
+          {modalType === "Attraction" && (
+            <>
+              <Text style={styles.inputLabel}>Add Image</Text>
+              <TouchableOpacity
+                style={styles.addImageButton}
+                onPress={pickImageAndUpload}
+              >
+                <Text style={{ color: "#fff" }}>
+                  Choose {modalType === "Attraction" ? "Image" : "Images"}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {modalType === "Route" && (
+            <>
+              <Text style={styles.inputLabel}>Add attractions</Text>
+              <TouchableOpacity
+                style={styles.addImageButton}
+                onPress={pickImageAndUpload}
+              >
+                <Text style={{ color: "#fff" }}>Choose attractions</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
           {images && images.length > 0 && (
             <ScrollView horizontal style={styles.imagesContainer}>
@@ -186,59 +312,67 @@ export default function EditModal() {
               ))}
             </ScrollView>
           )}
+          {modalType === "Attraction" && (
+            <>
+              <Text style={styles.inputLabel}>City</Text>
+              <MultiSelect
+                items={ALL_CITIES}
+                uniqueKey="id"
+                onSelectedItemsChange={handleCitiesChange}
+                selectedItems={selectedCities}
+                selectText="Pick City"
+                searchInputPlaceholderText="Search Cities..."
+                tagRemoveIconColor="#CCC"
+                tagBorderColor="#CCC"
+                tagTextColor="#333"
+                selectedItemTextColor="#1158f1"
+                selectedItemIconColor="#1158f1"
+                itemTextColor="#000"
+                displayKey="name"
+                searchInputStyle={{ color: "#1158f1" }}
+                submitButtonColor="#1158f1"
+                submitButtonText="Done"
+                styleDropdownMenu={styles.multiselectDropdown}
+              />
 
-          <Text style={styles.inputLabel}>City</Text>
-          <MultiSelect
-            items={ALL_CITIES}
-            uniqueKey="id"
-            onSelectedItemsChange={handleCitiesChange}
-            selectedItems={selectedCities}
-            selectText="Pick City"
-            searchInputPlaceholderText="Search Cities..."
-            tagRemoveIconColor="#CCC"
-            tagBorderColor="#CCC"
-            tagTextColor="#333"
-            selectedItemTextColor="#1158f1"
-            selectedItemIconColor="#1158f1"
-            itemTextColor="#000"
-            displayKey="name"
-            searchInputStyle={{ color: "#1158f1" }}
-            submitButtonColor="#1158f1"
-            submitButtonText="Done"
-            styleDropdownMenu={styles.multiselectDropdown}
-          />
+              <Text style={styles.inputLabel}>Category</Text>
+              <MultiSelect
+                items={ALL_CATEGORIES}
+                uniqueKey="id"
+                onSelectedItemsChange={handleCategoriesChange}
+                selectedItems={selectedCategories}
+                selectText="Pick Category"
+                searchInputPlaceholderText="Search Categories..."
+                tagRemoveIconColor="#CCC"
+                tagBorderColor="#CCC"
+                tagTextColor="#333"
+                selectedItemTextColor="#1158f1"
+                selectedItemIconColor="#1158f1"
+                itemTextColor="#000"
+                displayKey="name"
+                searchInputStyle={{ color: "#1158f1" }}
+                submitButtonColor="#1158f1"
+                submitButtonText="Done"
+                styleDropdownMenu={styles.multiselectDropdown}
+              />
 
-          <Text style={styles.inputLabel}>Category</Text>
-          <MultiSelect
-            items={ALL_CATEGORIES}
-            uniqueKey="id"
-            onSelectedItemsChange={handleCategoriesChange}
-            selectedItems={selectedCategories}
-            selectText="Pick Category"
-            searchInputPlaceholderText="Search Categories..."
-            tagRemoveIconColor="#CCC"
-            tagBorderColor="#CCC"
-            tagTextColor="#333"
-            selectedItemTextColor="#1158f1"
-            selectedItemIconColor="#1158f1"
-            itemTextColor="#000"
-            displayKey="name"
-            searchInputStyle={{ color: "#1158f1" }}
-            submitButtonColor="#1158f1"
-            submitButtonText="Done"
-            styleDropdownMenu={styles.multiselectDropdown}
-          />
+              <Text style={styles.inputLabel}>Price (€)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter price in euros"
+                value={price}
+                onChangeText={setPrice}
+                keyboardType="numeric"
+              />
+            </>
+          )}
 
-          <Text style={styles.inputLabel}>Price (€)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter price in euros"
-            value={price}
-            onChangeText={setPrice}
-            keyboardType="numeric"
-          />
-
-          <TouchableOpacity style={styles.submitButton} onPress={createRoute}>
+          <TouchableOpacity
+            style={styles.submitButton}
+            onPress={
+              modalType === "Attraction" ? createAttraction : createRoute
+            }
+          >
             <Text style={styles.submitButtonText}>
               {modalState} {modalType}
             </Text>
