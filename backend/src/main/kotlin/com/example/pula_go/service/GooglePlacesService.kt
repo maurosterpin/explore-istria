@@ -45,7 +45,7 @@ class GooglePlacesService(
     )
 
     private val gridPoints = listOf(
-        Pair(45.3167000, 14.0000000)
+        Pair(45.2402806, 13.9366694)
     )
 
     private val cityCenters = listOf(
@@ -118,7 +118,7 @@ class GooglePlacesService(
                     .retrieve()
                     .bodyToMono(PlacesResponse::class.java)
                     .block()
-
+                println("response: $response")
                 if (response?.status == "OK") {
                     response.results.forEach { place ->
                         if (!attractionsMap.containsKey(place.place_id)) {
@@ -143,6 +143,7 @@ class GooglePlacesService(
                         break
                     }
                 } else {
+                    println("Breaking...")
                     break
                 }
             } while (true)

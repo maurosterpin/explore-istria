@@ -1,6 +1,7 @@
 package com.example.pula_go.controller
 
 import com.example.pula_go.model.RoutePlan
+import com.example.pula_go.model.RoutePlanUpdateRequest
 import com.example.pula_go.service.RoutePlanResponse
 import com.example.pula_go.service.RoutePlanService
 import org.springframework.web.bind.annotation.*
@@ -12,8 +13,13 @@ class RoutePlanController(
 ) {
 
     @PostMapping
-    fun createRoutePlan(@RequestBody routePlan: RoutePlan): RoutePlan {
-        return routePlanService.createRoutePlan(routePlan)
+    fun createRoutePlan(@RequestBody request: RoutePlanUpdateRequest): RoutePlan {
+        return routePlanService.createRoutePlan(request)
+    }
+
+    @PutMapping
+    fun updateRoutePlan(@RequestBody request: RoutePlanUpdateRequest): RoutePlan {
+        return routePlanService.updateRoutePlan(request)
     }
 
     @GetMapping

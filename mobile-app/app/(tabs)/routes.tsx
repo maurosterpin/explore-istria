@@ -142,8 +142,14 @@ export default function RoutesPage() {
   const STORAGE_KEY = "rating_list";
 
   useEffect(() => {
-    if (!showCommentsModal) fetchRoutes();
-  }, [selectedSort, selectedCity, selectedCategory, showCommentsModal]);
+    if (!showCommentsModal || !store.openModal) fetchRoutes();
+  }, [
+    selectedSort,
+    selectedCity,
+    selectedCategory,
+    showCommentsModal,
+    store.openModal,
+  ]);
 
   const useRoute = async (attractionIds: string) => {
     console.log("Using route with attractionIds:", attractionIds);
@@ -151,7 +157,7 @@ export default function RoutesPage() {
       const response = await fetch(`${baseApiUrl}/use`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ attractionIds }),
+        body: attractionIds,
       });
       if (response.ok) {
         const data = await response.json();
@@ -248,11 +254,14 @@ export default function RoutesPage() {
     }
   };
 
-  const fetchAttractionsByIds = async (ids: Number[]) => {
+  const fetchAttractionsByIds = async (
+    ids: Number[],
+    editingRoute?: boolean
+  ) => {
     try {
       const response = await fetch(`${baseApiUrl}/getByIds?ids=${ids}`);
       const data = await response.json();
-      store.setRouteAttractions(data);
+      if (!editingRoute) store.setRouteAttractions(data);
       return data;
     } catch (error) {
       console.error("Error fetching route attractions:", error);
@@ -386,7 +395,17 @@ export default function RoutesPage() {
             display: store.userId ? undefined : "none",
           }}
           icon="pencil"
-          onPress={() => {
+          onPress={async () => {
+            const attractions: Attraction[] = await fetchAttractionsByIds(
+              item.attractionIds.split(",").map((s) => Number(s.trim())),
+              true
+            );
+            store.setEditRoute({
+              id: item.id,
+              name: item.name,
+              description: item.description,
+              attractions,
+            } as Route);
             store.setModalType("Route");
             store.setModalState("Edit");
             store.setOpenModal(true);

@@ -1,32 +1,34 @@
 package com.example.pula_go.model
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.persistence.*
 
+@JsonIgnoreProperties(value = ["hibernateLazyInitializer", "handler"])
 @Entity
 @Table(name = "route_plan")
 data class RoutePlan(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    var id: Long = 0,
 
-    val name: String,
+    var name: String,
 
     @Column(columnDefinition = "TEXT")
-    val description: String,
+    var description: String,
 
-    val category: String? = null,
+    var category: String? = null,
 
-    val city: String? = null,
+    var city: String? = null,
 
     @Column(name = "attraction_ids", columnDefinition = "TEXT")
-    val attractionIds: String,
+    var attractionIds: String,
 
     var upvotes: Int = 0,
 
     @Column(name = "userId")
-    val userId: Long,
+    var userId: Long,
 
     @Column(columnDefinition = "TEXT")
-    val images: String? = null
+    var images: String? = null
 
 )

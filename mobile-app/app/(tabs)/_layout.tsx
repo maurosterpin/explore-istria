@@ -25,7 +25,9 @@ export default function TabLayout() {
           ios: {
             position: "absolute",
           },
-          default: {},
+          default: {
+            display: store.editingRouteAttractions ? "none" : undefined,
+          },
         }),
       }}
     >

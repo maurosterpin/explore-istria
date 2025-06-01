@@ -17,3 +17,10 @@ type InitialRegion = {
   latitudeDelta: number;
   longitudeDelta: number;
 };
+
+type Route = {
+  id: number;
+  name: string;
+  description: string;
+  attractions: Attraction[];
+};

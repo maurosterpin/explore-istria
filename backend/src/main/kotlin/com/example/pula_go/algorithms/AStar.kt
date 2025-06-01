@@ -7,10 +7,10 @@ fun heuristic(current: Int, goal: Int): Int {
 }
 
 fun aStar(graph: List<List<Edge>>, start: Int, goal: Int): Pair<IntArray, IntArray?> {
-    val n = graph.size
-    val distance = IntArray(n) { Int.MAX_VALUE }
-    val estimatedTotal = IntArray(n) { Int.MAX_VALUE }
-    val cameFrom = IntArray(n) { -1 }
+    val size = graph.size
+    val distance = IntArray(size) { Int.MAX_VALUE }
+    val estimatedTotal = IntArray(size) { Int.MAX_VALUE }
+    val cameFrom = IntArray(size) { -1 }
 
     distance[start] = 0
     estimatedTotal[start] = heuristic(start, goal)

@@ -72,9 +72,9 @@ class RouteGenerator {
     ): List<Attraction> {
         val averageSpeeds = mapOf(
             "driving-car" to 30.0,
-            "foot-walking" to 5.0,
-            "cycling-regular" to 15.0,
-            "wheelchair" to 3.0
+            "foot-walking" to 3.0,
+            "cycling-regular" to 12.0,
+            "wheelchair" to 2.0
         )
 
         val speedKmh = averageSpeeds[prefs.transportMode] ?: 30.0

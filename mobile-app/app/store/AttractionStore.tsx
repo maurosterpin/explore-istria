@@ -31,6 +31,10 @@ type GlobalStore = {
   setTravelMode: (value: string) => void;
   editAttraction: Attraction | undefined;
   setEditAttraction: (val: Attraction | undefined) => void;
+  editRoute: Route | undefined;
+  setEditRoute: (val: Route | undefined) => void;
+  editingRouteAttractions: boolean;
+  setEditingRouteAttractions: (val: boolean) => void;
 };
 
 const StoreContext = createContext<GlobalStore | undefined>(undefined);
@@ -61,7 +65,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [editAttraction, setEditAttraction] = useState<Attraction | undefined>(
     undefined
   );
-  const [editRoute, setEditRoute] = useState<Attraction | undefined>(undefined);
+  const [editRoute, setEditRoute] = useState<Route | undefined>(undefined);
+  const [editingRouteAttractions, setEditingRouteAttractions] = useState(false);
 
   const value: GlobalStore = {
     routeAttractions,
@@ -94,6 +99,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTravelMode,
     editAttraction,
     setEditAttraction,
+    editRoute,
+    setEditRoute,
+    editingRouteAttractions,
+    setEditingRouteAttractions,
   };
 
   return (

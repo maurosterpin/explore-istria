@@ -2,10 +2,8 @@ package com.example.pula_go.service
 
 import com.example.pula_go.model.RoutePlan
 import com.example.pula_go.model.RoutePlanRating
-import com.example.pula_go.repository.RouteCommentRepository
-import com.example.pula_go.repository.RoutePlanRepository
-import com.example.pula_go.repository.RoutePlanUpvoteRepository
-import com.example.pula_go.repository.UserRepository
+import com.example.pula_go.model.RoutePlanUpdateRequest
+import com.example.pula_go.repository.*
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.stereotype.Service
@@ -25,14 +23,47 @@ data class RoutePlanResponse(
 
 @Service
 class RoutePlanService(
+    private val attractionRepository: AttractionRepository,
     private val routePlanRepository: RoutePlanRepository,
     private val routePlanUpvoteRepository: RoutePlanUpvoteRepository,
     private val routeCommentRepository: RouteCommentRepository,
     private val userRepository: UserRepository
 ) {
 
-    fun createRoutePlan(routePlan: RoutePlan): RoutePlan {
-        return routePlanRepository.save(routePlan)
+    fun createRoutePlan(request: RoutePlanUpdateRequest): RoutePlan {
+        val attractions = attractionRepository.findByIdIn(request.attractionIds)
+        val categories = attractions.map { it.category }.distinct().joinToString(separator = ",")
+        val cities = attractions.map { it.city }.distinct().joinToString(separator = ",")
+        val newRoutePlan = RoutePlan(
+            id = 0,
+            name = request.name,
+            description = request.description,
+            city = cities,
+            category = categories,
+            attractionIds = request.attractionIds.joinToString(separator = ","),
+            upvotes = 1,
+            userId = 1,
+            images = "[" + attractions.joinToString(separator = ",") { '"' + it.imageUrl.toString() + '"' } + "]"
+        )
+        return routePlanRepository.save(newRoutePlan)
+    }
+
+    fun updateRoutePlan(request: RoutePlanUpdateRequest): RoutePlan {
+        val currentRoutePlan = routePlanRepository.getById(request.id)
+        val attractions = attractionRepository.findByIdIn(request.attractionIds)
+        val categories = attractions.map { it.category }.distinct().joinToString(separator = ",")
+        val cities = attractions.map { it.city }.distinct().joinToString(separator = ",")
+        currentRoutePlan.id = request.id.toInt().toLong()
+        currentRoutePlan.name = request.name
+        currentRoutePlan.description = request.description
+        currentRoutePlan.category = categories
+        currentRoutePlan.city = cities
+        currentRoutePlan.attractionIds = request.attractionIds.joinToString(separator = ",")
+        currentRoutePlan.upvotes = currentRoutePlan.upvotes
+        currentRoutePlan.userId = 1
+        currentRoutePlan.images = "[" + attractions.joinToString(separator = ",") { '"' + it.imageUrl.toString() + '"' } + "]"
+
+        return routePlanRepository.save(currentRoutePlan)
     }
 
     fun createRouteWithImages(

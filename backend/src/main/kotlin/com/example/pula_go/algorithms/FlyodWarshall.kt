@@ -1,22 +1,28 @@
 package com.example.pula_go.algorithms
 
 fun floydWarshall(graph: Array<IntArray>): Array<IntArray> {
-    val max = Int.MAX_VALUE
-    val n = graph.size
-    val dist = Array(n) { i -> IntArray(n) { j -> graph[i][j] } }
+    val INF = Int.MAX_VALUE
+    val vertexCount = graph.size
+    val distance = Array(vertexCount) { from ->
+        IntArray(vertexCount) { to -> graph[from][to] }
+    }
 
-    for (k in 0 until n) {
-        for (i in 0 until n) {
-            for (j in 0 until n) {
-                if (dist[i][k] != max && dist[k][j] != max) {
-                    dist[i][j] = minOf(dist[i][j], dist[i][k] + dist[k][j])
+    for (midVertex in 0 until vertexCount) {
+        for (from in 0 until vertexCount) {
+            for (to in 0 until vertexCount) {
+                if (distance[from][midVertex] != INF && distance[midVertex][to] != INF) {
+                    distance[from][to] = minOf(
+                        distance[from][to],
+                        distance[from][midVertex] + distance[midVertex][to]
+                    )
                 }
             }
         }
     }
 
-    return dist
+    return distance
 }
+
 
 fun main() {
     val max = Int.MAX_VALUE

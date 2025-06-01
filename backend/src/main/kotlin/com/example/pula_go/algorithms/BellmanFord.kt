@@ -7,22 +7,26 @@ fun bellmanFord(graph: List<List<Edge>>, source: Int): Pair<IntArray, Boolean> {
     distance[source] = 0
 
     val edges = mutableListOf<Triple<Int, Int, Int>>()
-    for (u in graph.indices) {
-        for (edge in graph[u]) {
-            edges.add(Triple(u, edge.to, edge.weight))
+    for (sourceVertex in graph.indices) {
+        for (edge in graph[sourceVertex]) {
+            edges.add(Triple(sourceVertex, edge.to, edge.weight))
         }
     }
 
     repeat(vertices - 1) {
-        for ((u, v, w) in edges) {
-            if (distance[u] != Int.MAX_VALUE && distance[u] + w < distance[v]) {
-                distance[v] = distance[u] + w
+        for ((sourceVertex, targetVertex, edgeWeight) in edges) {
+            if (distance[sourceVertex] != Int.MAX_VALUE &&
+                distance[sourceVertex] + edgeWeight < distance[targetVertex]
+            ) {
+                distance[targetVertex] = distance[sourceVertex] + edgeWeight
             }
         }
     }
 
-    for ((u, v, w) in edges) {
-        if (distance[u] != Int.MAX_VALUE && distance[u] + w < distance[v]) {
+    for ((sourceVertex, targetVertex, edgeWeight) in edges) {
+        if (distance[sourceVertex] != Int.MAX_VALUE &&
+            distance[sourceVertex] + edgeWeight < distance[targetVertex]
+        ) {
             return Pair(distance, true)
         }
     }

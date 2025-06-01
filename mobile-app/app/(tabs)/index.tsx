@@ -7,12 +7,13 @@ import {
   Switch,
   SafeAreaView,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { useStore } from "../store/AttractionStore";
 import { baseApiUrl } from "@/constants/Api";
 import AttractionCard from "@/components/AttractionCard";
 import { Picker } from "@react-native-picker/picker";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { ALL_CITIES } from "./routes";
 
 const AttractionsPage = () => {
@@ -27,6 +28,11 @@ const AttractionsPage = () => {
     setSelectedCategory,
     selectedCity,
     setSelectedCity,
+    editRoute,
+    setEditRoute,
+    editingRouteAttractions,
+    setEditingRouteAttractions,
+    modalState,
   } = useStore();
   const [showOnlySelected, setShowOnlySelected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +44,14 @@ const AttractionsPage = () => {
       };
     }, [])
   );
+
+  useEffect(() => {
+    if (modalState === "Edit" && editRoute) {
+      setSelectedCategory(null);
+      setSelectedCity(null);
+      setShowOnlySelected(true);
+    }
+  }, []);
 
   useEffect(() => {
     fetchAttractions();
@@ -75,6 +89,33 @@ const AttractionsPage = () => {
     }
   };
 
+  const editRouteAttractions = (attraction: Attraction) => {
+    if (editRoute?.attractions.length) {
+      if (
+        editRoute.attractions.find(
+          (item: Attraction) => item.id === attraction.id
+        )
+      ) {
+        setEditRoute({
+          ...editRoute,
+          attractions: editRoute?.attractions.filter(
+            (item: Attraction) => item.id !== attraction.id
+          ),
+        });
+      } else {
+        setEditRoute({
+          ...editRoute,
+          attractions: [...editRoute?.attractions, attraction],
+        });
+      }
+    } else if (editRoute) {
+      setEditRoute({
+        ...editRoute,
+        attractions: [...editRoute?.attractions, attraction],
+      });
+    }
+  };
+
   const renderItem = ({ item }: any) => (
     <AttractionCard
       key={item.id}
@@ -84,8 +125,14 @@ const AttractionsPage = () => {
       image={item.imageUrl}
       lat={item.lat}
       lng={item.lng}
-      inRoute={selectedAttractions.find((a) => a.id === item.id)}
-      onClick={() => toggleRoute(item)}
+      inRoute={
+        editRoute
+          ? editRoute.attractions.find((a) => a.id === item.id)
+          : selectedAttractions.find((a) => a.id === item.id)
+      }
+      onClick={() =>
+        editRoute ? editRouteAttractions(item) : toggleRoute(item)
+      }
       category={item.category}
       city={item.city}
       rating={item.rating}
@@ -98,7 +145,27 @@ const AttractionsPage = () => {
     if (routeAttractions.length > 0) return null;
     return (
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Route Attractions</Text>
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text style={styles.headerTitle}>Route Attractions</Text>
+          {editingRouteAttractions && (
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => {
+                setEditingRouteAttractions(false);
+                setShowOnlySelected(false);
+                router.back();
+              }}
+            >
+              <Text style={styles.backButtonText}>Finish</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         <View style={styles.filterRow}>
           <Text style={styles.filterLabel}>Only In Route</Text>
@@ -138,7 +205,9 @@ const AttractionsPage = () => {
   if (
     showOnlySelected &&
     attractions.filter((attraction) =>
-      selectedAttractions.some((sel) => sel.id === attraction.id)
+      editRoute
+        ? editRoute.attractions.some((sel) => sel.id === attraction.id)
+        : selectedAttractions.some((sel) => sel.id === attraction.id)
     ).length < 1
   )
     return (
@@ -167,7 +236,11 @@ const AttractionsPage = () => {
       ) : (
         <FlatList
           data={
-            routeAttractions?.length > 0
+            editRoute?.attractions && showOnlySelected
+              ? attractions.filter((attraction) =>
+                  editRoute.attractions.some((sel) => sel.id === attraction.id)
+                )
+              : routeAttractions?.length > 0
               ? routeAttractions
               : showOnlySelected
               ? attractions.filter((attraction) =>
@@ -257,6 +330,20 @@ const styles = StyleSheet.create({
     height: 53,
     width: "100%",
     marginTop: 4,
+  },
+  backButton: {
+    borderColor: "#118cf1",
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    alignSelf: "flex-start",
+    marginVertical: 5,
+  },
+  backButtonText: {
+    color: "#118cf1",
+    fontSize: 14,
+    fontWeight: "500",
   },
 });
 

@@ -17,6 +17,7 @@ import DropDownPicker from "react-native-dropdown-picker";
 import MultiSelect from "react-native-multiple-select";
 import { ALL_CATEGORIES, ALL_CITIES } from "@/app/(tabs)/generate-route";
 import { baseApiUrl, cdnApiKey } from "@/constants/Api";
+import { router } from "expo-router";
 
 export default function EditModal() {
   const {
@@ -26,11 +27,11 @@ export default function EditModal() {
     modalType,
     editAttraction,
     setEditAttraction,
+    editRoute,
+    setEditRoute,
+    editingRouteAttractions,
+    setEditingRouteAttractions,
   } = useStore();
-
-  useEffect(() => {
-    console.log("reload", editAttraction);
-  }, [editAttraction]);
 
   const [routeTitle, setRouteTitle] = useState("");
   const [routeDescription, setRouteDescription] = useState("");
@@ -47,7 +48,10 @@ export default function EditModal() {
     }
   };
   useEffect(() => {
-    if (editAttraction) {
+    if (editRoute && modalType === "Route") {
+      setRouteTitle(editRoute.name);
+      setRouteDescription(editRoute.description);
+    } else if (editAttraction && modalType === "Attraction") {
       setRouteTitle(editAttraction.name);
       setRouteDescription(editAttraction.description);
       setRouteLat(editAttraction.lat.toString());
@@ -66,7 +70,7 @@ export default function EditModal() {
       setSelectedCities([]);
       setPrice("");
     }
-  }, [editAttraction]);
+  }, [editAttraction, editRoute]);
 
   const handleCategoriesChange = (items: any) => {
     setSelectedCategories(items);
@@ -87,25 +91,28 @@ export default function EditModal() {
   async function createRoute() {
     try {
       const routeData = {
+        id: editRoute?.id || 0,
         name: routeTitle,
         description: routeDescription,
-        lat: routeLat,
-        lng: routeLng,
-        images: [imageUrl],
+        attractionIds: editRoute?.attractions.map(
+          (attraction) => attraction.id
+        ),
       };
 
       const response = await fetch(`${baseApiUrl}/routes`, {
-        method: "POST",
+        method: editRoute ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(routeData),
       });
       if (!response.ok) {
         const errData = await response.json();
-        Alert.alert("Error", errData.message || "Failed to create route");
+        Alert.alert("Error", errData.message || "Failed to create routes");
         return;
       }
       const createdRoute = await response.json();
-      Alert.alert("Success", "Route created successfully!");
+      if (modalState === "Edit")
+        Alert.alert("Success", "Route updated successfully!");
+      else Alert.alert("Success", "Route created successfully!");
       setOpenModal(false);
       setRouteTitle("");
       setRouteDescription("");
@@ -198,12 +205,13 @@ export default function EditModal() {
 
   return (
     <Modal
-      visible={openModal}
+      visible={editingRouteAttractions ? false : openModal}
       animationType="slide"
       transparent={true}
       onRequestClose={() => {
-        setOpenModal(false);
+        setEditRoute(undefined);
         setEditAttraction(undefined);
+        setOpenModal(false);
       }}
     >
       <View style={styles.modalOverlay}>
@@ -212,7 +220,8 @@ export default function EditModal() {
             style={styles.closeModalButton}
             onPress={() => {
               setOpenModal(false);
-              // setEditAttraction(undefined);
+              setEditRoute(undefined);
+              setEditAttraction(undefined);
             }}
           >
             <MaterialCommunityIcons on name="close" size={28} color="#333" />
@@ -283,10 +292,13 @@ export default function EditModal() {
 
           {modalType === "Route" && (
             <>
-              <Text style={styles.inputLabel}>Add attractions</Text>
+              <Text style={styles.inputLabel}>{modalState} attractions</Text>
               <TouchableOpacity
                 style={styles.addImageButton}
-                onPress={pickImageAndUpload}
+                onPress={() => {
+                  setEditingRouteAttractions(true);
+                  router.replace("/");
+                }}
               >
                 <Text style={{ color: "#fff" }}>Choose attractions</Text>
               </TouchableOpacity>
@@ -308,6 +320,18 @@ export default function EditModal() {
                       color="red"
                     />
                   </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+          {editRoute?.attractions && editRoute.attractions.length > 0 && (
+            <ScrollView horizontal style={styles.imagesContainer}>
+              {editRoute.attractions.map((attraction, index) => (
+                <View key={index} style={styles.imageWrapper}>
+                  <Image
+                    source={{ uri: attraction.imageUrl }}
+                    style={styles.routeImage}
+                  />
                 </View>
               ))}
             </ScrollView>

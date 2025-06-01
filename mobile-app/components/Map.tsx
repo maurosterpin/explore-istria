@@ -12,7 +12,7 @@ import {
   ScrollView,
   TextInput,
 } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import MapView, { Marker, Polyline, Region } from "react-native-maps";
 import polyline from "@mapbox/polyline";
 import * as Location from "expo-location";
 import { useStore } from "@/app/store/AttractionStore";
@@ -30,9 +30,7 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 const Map = () => {
   const [route, setRoute] = useState<Attraction[]>([]);
   const [roadRoute, setRoadRoute] = useState<any>([]);
-  const [initialRegion, setInitialRegion] = useState<InitialRegion | null>(
-    null
-  );
+  const [initialRegion, setInitialRegion] = useState<Region | null>(null);
   const [useMyLocation, setUseMyLocation] = useState<any>(false);
   const {
     selectedAttractions,
@@ -48,7 +46,13 @@ const Map = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [postModalVisible, setPostModalVisible] = useState(false);
-
+  const mapRef = useRef<MapView>(null);
+  const zoomIn = () => {
+    console.log("zooming in", initialRegion, mapRef?.current);
+    if (mapRef?.current && initialRegion) {
+      mapRef.current.animateToRegion(initialRegion, 1000);
+    }
+  };
   const [routeTitle, setRouteTitle] = useState("");
   const [routeDescription, setRouteDescription] = useState("");
   const [imageUrlInput, setImageUrlInput] = useState("");
@@ -146,6 +150,10 @@ const Map = () => {
     [selectedAttractions]
   );
 
+  useEffect(() => {
+    zoomIn();
+  }, [initialRegion]);
+
   const fetchRoute = useCallback(
     async (locations?: any) => {
       try {
@@ -162,8 +170,8 @@ const Map = () => {
           setInitialRegion({
             latitude: data[0].lat,
             longitude: data[0].lng,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
+            latitudeDelta: 0.025,
+            longitudeDelta: 0.025,
           });
         }
         return data;
@@ -190,6 +198,7 @@ const Map = () => {
             },
             body: JSON.stringify({
               coordinates,
+              preference: "shortest",
             }),
           }
         );
@@ -334,6 +343,7 @@ const Map = () => {
   return (
     <View style={styles.container}>
       <MapView
+        ref={mapRef}
         onPress={closePanel}
         style={StyleSheet.absoluteFillObject}
         initialRegion={initialRegion}
