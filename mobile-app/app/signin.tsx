@@ -21,10 +21,7 @@ export default function SignInScreen() {
 
   const handleSignIn = async () => {
     try {
-      console.log("route", `${baseApiUrl}/login`);
-      console.log("username", username, "password", password);
       const body = JSON.stringify({ username, password });
-      console.log("making request", body);
       const response = await fetch(`${baseApiUrl}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -32,7 +29,6 @@ export default function SignInScreen() {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log("user", data);
         store.setUsername(data.username);
         store.setUserId(data.userId);
         store.setUserUpvotedRoutes(data.upvotedRoutes);

@@ -10,28 +10,28 @@ data class Attraction(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
-    val name: String,
+    var name: String,
 
-    val lat: Double,
+    var lat: Double,
 
-    val lng: Double,
-
-    @Lob
-    @Column(columnDefinition = "TEXT")
-    val description: String? = null,
+    var lng: Double,
 
     @Lob
     @Column(columnDefinition = "TEXT")
-    val imageUrl: String? = null,
+    var description: String? = null,
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    var imageUrl: String? = null,
 
     var rating: Double = 5.0,
 
     var ratingCount: Long = 1,
 
     @Enumerated(EnumType.STRING)
-    val category: Category? = null,
+    var category: Category? = null,
 
-    val price: BigDecimal? = null,
+    var price: BigDecimal? = null,
 
-    val city: String? = null,
+    var city: String? = null,
 )

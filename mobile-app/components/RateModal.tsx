@@ -33,7 +33,6 @@ export default function RateModal({
         },
         body: JSON.stringify({ attractionId, rating }),
       });
-      console.log("response", response);
       if (response.ok) {
         await addIdToList(attractionId);
         setDisabled(true);

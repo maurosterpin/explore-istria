@@ -33,6 +33,8 @@ const AttractionsPage = () => {
     editingRouteAttractions,
     setEditingRouteAttractions,
     modalState,
+    modalType,
+    openModal,
   } = useStore();
   const [showOnlySelected, setShowOnlySelected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +57,7 @@ const AttractionsPage = () => {
 
   useEffect(() => {
     fetchAttractions();
-  }, [selectedCategory, selectedCity]);
+  }, [selectedCategory, selectedCity, openModal]);
 
   const fetchAttractions = async () => {
     try {
@@ -76,6 +78,7 @@ const AttractionsPage = () => {
   };
 
   const toggleRoute = (attraction: Attraction) => {
+    console.log("toggleRoute");
     if (
       selectedAttractions.find((item: Attraction) => item.id === attraction.id)
     ) {
@@ -90,6 +93,7 @@ const AttractionsPage = () => {
   };
 
   const editRouteAttractions = (attraction: Attraction) => {
+    console.log("editRoute");
     if (editRoute?.attractions.length) {
       if (
         editRoute.attractions.find(
@@ -108,10 +112,13 @@ const AttractionsPage = () => {
           attractions: [...editRoute?.attractions, attraction],
         });
       }
-    } else if (editRoute) {
+    } else if (modalState === "Add" && modalType === "Route") {
+      console.log("Add route");
       setEditRoute({
-        ...editRoute,
-        attractions: [...editRoute?.attractions, attraction],
+        id: 0,
+        name: editRoute?.name || "",
+        description: editRoute?.description || "",
+        attractions: [attraction],
       });
     }
   };
@@ -131,7 +138,7 @@ const AttractionsPage = () => {
           : selectedAttractions.find((a) => a.id === item.id)
       }
       onClick={() =>
-        editRoute ? editRouteAttractions(item) : toggleRoute(item)
+        editingRouteAttractions ? editRouteAttractions(item) : toggleRoute(item)
       }
       category={item.category}
       city={item.city}
@@ -159,7 +166,7 @@ const AttractionsPage = () => {
               onPress={() => {
                 setEditingRouteAttractions(false);
                 setShowOnlySelected(false);
-                router.back();
+                router.replace("/routes");
               }}
             >
               <Text style={styles.backButtonText}>Finish</Text>
@@ -174,30 +181,34 @@ const AttractionsPage = () => {
             onValueChange={setShowOnlySelected}
           />
         </View>
-
-        <Picker
-          style={styles.picker}
-          selectedValue={selectedCategory}
-          onValueChange={(val) => setSelectedCategory(val)}
-        >
-          <Picker.Item label="All Categories" value={null} />
-          <Picker.Item label="Historical" value={"HISTORICAL"} />
-          <Picker.Item label="Cultural" value={"CULTURAL"} />
-          <Picker.Item label="Natural" value={"NATURAL"} />
-          <Picker.Item label="Recreational" value={"RECREATIONAL"} />
-          <Picker.Item label="Culinary" value={"CULINARY"} />
-        </Picker>
-
-        <Picker
-          style={styles.picker}
-          selectedValue={selectedCity}
-          onValueChange={(val) => setSelectedCity(val)}
-        >
-          <Picker.Item label="All Cities" value={null} />
-          {ALL_CITIES.map((city) => (
-            <Picker.Item label={city} value={city} />
-          ))}
-        </Picker>
+        <View style={styles.filterRow}>
+          <Text style={styles.filterBigLabel}>City:</Text>
+          <Picker
+            style={styles.picker}
+            selectedValue={selectedCity}
+            onValueChange={(val) => setSelectedCity(val)}
+          >
+            <Picker.Item label="All" value={null} />
+            {ALL_CITIES.map((city) => (
+              <Picker.Item label={city} value={city} />
+            ))}
+          </Picker>
+        </View>
+        <View style={styles.filterRow}>
+          <Text style={styles.filterBigLabel}>Category:</Text>
+          <Picker
+            style={styles.picker}
+            selectedValue={selectedCategory}
+            onValueChange={(val) => setSelectedCategory(val)}
+          >
+            <Picker.Item label="All" value={null} />
+            <Picker.Item label="Historical" value={"HISTORICAL"} />
+            <Picker.Item label="Cultural" value={"CULTURAL"} />
+            <Picker.Item label="Natural" value={"NATURAL"} />
+            <Picker.Item label="Recreational" value={"RECREATIONAL"} />
+            <Picker.Item label="Culinary" value={"CULINARY"} />
+          </Picker>
+        </View>
       </View>
     );
   };
@@ -344,6 +355,10 @@ const styles = StyleSheet.create({
     color: "#118cf1",
     fontSize: 14,
     fontWeight: "500",
+  },
+  filterBigLabel: {
+    fontSize: 16,
+    marginRight: 8,
   },
 });
 

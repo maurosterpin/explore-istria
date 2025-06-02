@@ -27,6 +27,19 @@ class AttractionService(
         return attractionRepository.save(attraction)
     }
 
+    fun updateAttraction(attraction: Attraction): Attraction {
+        val currentAttraction = attractionRepository.getById(attraction.id)
+        currentAttraction.name = attraction.name
+        currentAttraction.description = attraction.description
+        currentAttraction.city = attraction.city
+        currentAttraction.category = attraction.category
+        currentAttraction.imageUrl = attraction.imageUrl
+        currentAttraction.lat = attraction.lat
+        currentAttraction.lng = attraction.lng
+        currentAttraction.price = attraction.price
+        return attractionRepository.save(currentAttraction)
+    }
+
     fun addAttractions(attractions: List<Attraction>): List<Attraction> {
         return attractionRepository.saveAll(attractions)
     }

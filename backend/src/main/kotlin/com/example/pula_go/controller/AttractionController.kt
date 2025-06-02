@@ -43,6 +43,12 @@ class AttractionController(
         return ResponseEntity.ok(savedAttraction)
     }
 
+    @PutMapping("/attraction/add")
+    fun updateAttraction(@RequestBody attraction: Attraction): ResponseEntity<Attraction> {
+        val updatedAttraction = attractionService.updateAttraction(attraction)
+        return ResponseEntity.ok(updatedAttraction)
+    }
+
     @PostMapping("/adds")
     fun addAttractions(@RequestBody attractions: List<Attraction>): ResponseEntity<List<Attraction>> {
         val savedAttractions = attractionService.addAttractions(attractions)

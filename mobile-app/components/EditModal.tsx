@@ -18,6 +18,7 @@ import MultiSelect from "react-native-multiple-select";
 import { ALL_CATEGORIES, ALL_CITIES } from "@/app/(tabs)/generate-route";
 import { baseApiUrl, cdnApiKey } from "@/constants/Api";
 import { router } from "expo-router";
+import { Picker } from "@react-native-picker/picker";
 
 export default function EditModal() {
   const {
@@ -39,8 +40,8 @@ export default function EditModal() {
   const [routeLng, setRouteLng] = useState("");
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [images, setImages] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string>("");
+  const [selectedCities, setSelectedCities] = useState<string>("");
   const handleAddImage = () => {
     if (imageUrlInput.trim().length > 0) {
       setImages((prev) => [...prev, imageUrlInput.trim()]);
@@ -57,8 +58,8 @@ export default function EditModal() {
       setRouteLat(editAttraction.lat.toString());
       setRouteLng(editAttraction.lng.toString());
       setImages([editAttraction.imageUrl]);
-      setSelectedCategories([editAttraction.category as string]);
-      setSelectedCities([editAttraction.city as string]);
+      setSelectedCategories(editAttraction.category as string);
+      setSelectedCities(editAttraction.city as string);
       if (editAttraction.price) setPrice(editAttraction.price.toString());
     } else {
       setRouteTitle("");
@@ -66,8 +67,8 @@ export default function EditModal() {
       setRouteLat("");
       setRouteLng("");
       setImages([]);
-      setSelectedCategories([]);
-      setSelectedCities([]);
+      setSelectedCategories("");
+      setSelectedCities("");
       setPrice("");
     }
   }, [editAttraction, editRoute]);
@@ -100,7 +101,7 @@ export default function EditModal() {
       };
 
       const response = await fetch(`${baseApiUrl}/routes`, {
-        method: editRoute ? "PUT" : "POST",
+        method: modalState === "Edit" ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(routeData),
       });
@@ -131,16 +132,15 @@ export default function EditModal() {
         description: routeDescription,
         lat: parseFloat(routeLat),
         lng: parseFloat(routeLng),
-        imageUrl: imageUrl,
+        imageUrl: images[0],
         rating: 5,
         ratingCount: 1,
-        category: selectedCategories[0],
+        category: selectedCategories,
         price: parseFloat(price),
-        city: selectedCities[0],
+        city: selectedCities,
       };
-      console.log("attraction", JSON.stringify(attractionData));
       const response = await fetch(`${baseApiUrl}/attraction/add`, {
-        method: "POST",
+        method: modalState === "Add" ? "POST" : "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(attractionData),
       });
@@ -150,7 +150,9 @@ export default function EditModal() {
         return;
       }
       const createdAttraction = await response.json();
-      Alert.alert("Success", "Attraction created successfully!");
+      if (modalState === "Add")
+        Alert.alert("Success", "Attraction created successfully!");
+      else Alert.alert("Success", "Attraction updated successfully!");
       setOpenModal(false);
       setRouteTitle("");
       setRouteDescription("");
@@ -175,7 +177,6 @@ export default function EditModal() {
 
     if (!result.canceled) {
       const file = result.assets[0];
-      console.log("file", file);
       const formData = new FormData();
       formData.append("file", {
         uri: file.uri,
@@ -183,11 +184,6 @@ export default function EditModal() {
         name: "upload.jpg",
       } as any);
       formData.append("upload_preset", "my_preset");
-      console.log("api key", cdnApiKey);
-      console.log(
-        "url",
-        `https://api.cloudinary.com/v1_1/${process.env.EXPO_PUBLIC_CLOUD_NAME}/image/upload`
-      );
       const res = await fetch(
         `https://api.cloudinary.com/v1_1/${process.env.EXPO_PUBLIC_CLOUD_NAME}/image/upload`,
         {
@@ -195,10 +191,8 @@ export default function EditModal() {
           body: formData,
         }
       );
-      console.log("res", res);
       const data = await res.json();
       setImageUrl(data.secure_url);
-      console.log("image url", data.secure_url);
       setImages(() => [data.secure_url]);
     }
   };
@@ -212,6 +206,7 @@ export default function EditModal() {
         setEditRoute(undefined);
         setEditAttraction(undefined);
         setOpenModal(false);
+        setEditingRouteAttractions(false);
       }}
     >
       <View style={styles.modalOverlay}>
@@ -222,6 +217,7 @@ export default function EditModal() {
               setOpenModal(false);
               setEditRoute(undefined);
               setEditAttraction(undefined);
+              setEditingRouteAttractions(false);
             }}
           >
             <MaterialCommunityIcons on name="close" size={28} color="#333" />
@@ -338,7 +334,7 @@ export default function EditModal() {
           )}
           {modalType === "Attraction" && (
             <>
-              <Text style={styles.inputLabel}>City</Text>
+              {/* <Text style={styles.inputLabel}>City</Text>
               <MultiSelect
                 items={ALL_CITIES}
                 uniqueKey="id"
@@ -357,9 +353,26 @@ export default function EditModal() {
                 submitButtonColor="#1158f1"
                 submitButtonText="Done"
                 styleDropdownMenu={styles.multiselectDropdown}
-              />
+              /> */}
+              <View style={styles.filterRow}>
+                <Text style={styles.filterLabel}>City:</Text>
+                <Picker
+                  selectedValue={selectedCities}
+                  style={styles.picker}
+                  onValueChange={handleCitiesChange}
+                >
+                  <Picker.Item label="All" value={null} />
+                  {ALL_CITIES.map((city) => (
+                    <Picker.Item
+                      key={city.id}
+                      label={city.name}
+                      value={city.name}
+                    />
+                  ))}
+                </Picker>
+              </View>
 
-              <Text style={styles.inputLabel}>Category</Text>
+              {/* <Text style={styles.inputLabel}>Category</Text>
               <MultiSelect
                 items={ALL_CATEGORIES}
                 uniqueKey="id"
@@ -378,7 +391,24 @@ export default function EditModal() {
                 submitButtonColor="#1158f1"
                 submitButtonText="Done"
                 styleDropdownMenu={styles.multiselectDropdown}
-              />
+              /> */}
+              <View style={styles.filterRow}>
+                <Text style={styles.filterLabel}>Category:</Text>
+                <Picker
+                  selectedValue={selectedCategories}
+                  style={styles.picker}
+                  onValueChange={handleCategoriesChange}
+                >
+                  <Picker.Item label="All" value={null} />
+                  {ALL_CATEGORIES.map((category) => (
+                    <Picker.Item
+                      key={category.id}
+                      label={category.name}
+                      value={category.name}
+                    />
+                  ))}
+                </Picker>
+              </View>
 
               <Text style={styles.inputLabel}>Price (€)</Text>
               <TextInput
@@ -435,6 +465,22 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: "center",
+  },
+  filterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  filterLabel: {
+    fontSize: 16,
+    marginRight: 8,
+  },
+  picker: {
+    flex: 1,
+  },
+  list: {
+    padding: 10,
+    paddingTop: 0,
   },
   routeImage: {
     width: 120,

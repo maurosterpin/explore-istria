@@ -1,31 +1,31 @@
 package com.example.pula_go.algorithms
 
 
-fun bellmanFord(graph: List<List<Edge>>, source: Int): Pair<IntArray, Boolean> {
+fun bellmanFord(graph: List<List<Edge>>, start: Int): Pair<IntArray, Boolean> {
     val vertices = graph.size
     val distance = IntArray(vertices) { Int.MAX_VALUE }
-    distance[source] = 0
+    distance[start] = 0
 
     val edges = mutableListOf<Triple<Int, Int, Int>>()
-    for (sourceVertex in graph.indices) {
-        for (edge in graph[sourceVertex]) {
-            edges.add(Triple(sourceVertex, edge.to, edge.weight))
+    for (startVertex in graph.indices) {
+        for (edge in graph[startVertex]) {
+            edges.add(Triple(startVertex, edge.to, edge.weight))
         }
     }
 
     repeat(vertices - 1) {
-        for ((sourceVertex, targetVertex, edgeWeight) in edges) {
-            if (distance[sourceVertex] != Int.MAX_VALUE &&
-                distance[sourceVertex] + edgeWeight < distance[targetVertex]
+        for ((startVertex, targetVertex, edgeWeight) in edges) {
+            if (distance[startVertex] != Int.MAX_VALUE &&
+                distance[startVertex] + edgeWeight < distance[targetVertex]
             ) {
-                distance[targetVertex] = distance[sourceVertex] + edgeWeight
+                distance[targetVertex] = distance[startVertex] + edgeWeight
             }
         }
     }
 
-    for ((sourceVertex, targetVertex, edgeWeight) in edges) {
-        if (distance[sourceVertex] != Int.MAX_VALUE &&
-            distance[sourceVertex] + edgeWeight < distance[targetVertex]
+    for ((startVertex, targetVertex, edgeWeight) in edges) {
+        if (distance[startVertex] != Int.MAX_VALUE &&
+            distance[startVertex] + edgeWeight < distance[targetVertex]
         ) {
             return Pair(distance, true)
         }

@@ -44,11 +44,11 @@ const Map = () => {
   const [heading, setHeading] = useState<number>(0);
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingRoute, setIsFetchingRoute] = useState(false);
 
   const [postModalVisible, setPostModalVisible] = useState(false);
   const mapRef = useRef<MapView>(null);
   const zoomIn = () => {
-    console.log("zooming in", initialRegion, mapRef?.current);
     if (mapRef?.current && initialRegion) {
       mapRef.current.animateToRegion(initialRegion, 1000);
     }
@@ -114,6 +114,7 @@ const Map = () => {
     let locations = null;
     setUserLat(userLocation?.latitude);
     setUserLng(userLocation?.longitude);
+    setIsFetchingRoute(true);
     if (userLocation?.latitude && userLocation?.longitude) {
       const user: Attraction = {
         id: 0,
@@ -130,9 +131,7 @@ const Map = () => {
 
   const isIdInList = async (id: number) => {
     const list = await loadIdList();
-    console.log("list", list);
     const exists = list.includes(id);
-    console.log("exists", exists);
     setIsDisabled(exists);
   };
 
@@ -145,6 +144,8 @@ const Map = () => {
         await fetchRoadRoute(data);
       } catch (error) {
         console.error("Error fetching route:", error);
+      } finally {
+        setIsFetchingRoute(false);
       }
     },
     [selectedAttractions]
@@ -170,8 +171,8 @@ const Map = () => {
           setInitialRegion({
             latitude: data[0].lat,
             longitude: data[0].lng,
-            latitudeDelta: 0.025,
-            longitudeDelta: 0.025,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
           });
         }
         return data;

@@ -13,10 +13,9 @@ const saveIdList = async (list: number[]) => {
 
 const loadIdList = async () => {
   try {
-    console.log("loading list...");
     const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
     const res = jsonValue != null ? JSON.parse(jsonValue) : [];
-    console.log("res", res);
+
     return res;
   } catch (e) {
     console.error("Error loading rating list", e);

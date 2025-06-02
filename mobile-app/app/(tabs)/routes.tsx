@@ -130,7 +130,6 @@ export default function RoutesPage() {
 
       const response = await fetch(`${baseApiUrl}/routes?${query}`);
       const data = await response.json();
-      console.log("fetched routes:", data);
       setRoutes(data);
     } catch (error) {
       console.error("Error fetching routes:", error);
@@ -152,7 +151,6 @@ export default function RoutesPage() {
   ]);
 
   const useRoute = async (attractionIds: string) => {
-    console.log("Using route with attractionIds:", attractionIds);
     try {
       const response = await fetch(`${baseApiUrl}/use`, {
         method: "POST",
@@ -184,10 +182,8 @@ export default function RoutesPage() {
 
   const loadIdList = async () => {
     try {
-      console.log("loading list...");
       const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
       const res = jsonValue != null ? JSON.parse(jsonValue) : [];
-      console.log("res", res);
       return res;
     } catch (e) {
       console.error("Error loading rating list", e);
@@ -209,9 +205,7 @@ export default function RoutesPage() {
 
   const isIdInList = async (id: number) => {
     const list = await loadIdList();
-    console.log("list", list);
     const exists = list.includes(id);
-    console.log("exists", exists);
     setIsDisabled(exists);
   };
 
@@ -349,7 +343,6 @@ export default function RoutesPage() {
     //   throw new Error("No token found");
     // }
     try {
-      console.log("body", JSON.stringify({ comment: newComment, rating }));
       const response = await fetch(
         `${baseApiUrl}/routes/comment/${selectedRoute.id}`,
         {
@@ -361,7 +354,6 @@ export default function RoutesPage() {
           body: JSON.stringify({ comment: newComment, rating }),
         }
       );
-      console.log("response", response);
       if (response.ok) {
         const createdComment = await response.json();
         setComments((prev) => [...prev, createdComment]);
